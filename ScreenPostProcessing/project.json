@@ -1,0 +1,8 @@
+{
+  "engine": "cocos-creator-js",
+  "packages": "packages",
+  "name": "ScreenPostProcessing",
+  "id": "9fa5bff3-25f5-4aee-abfe-5fd0d1a0eed9",
+  "version": "2.4.6",
+  "isNew": false
+}

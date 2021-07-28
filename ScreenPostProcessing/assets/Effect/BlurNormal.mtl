@@ -1,0 +1,23 @@
+{
+  "__type__": "cc.Material",
+  "_name": "BlurNormal",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "21d8d1a2-d44d-4823-98ed-5a0b04fcc2a8"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {},
+      "props": {
+        "u_resolution": {
+          "__type__": "cc.Vec2",
+          "x": 750,
+          "y": 1334
+        },
+        "u_brightness": 0.4
+      }
+    }
+  }
+}
