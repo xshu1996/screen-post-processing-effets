@@ -67,9 +67,9 @@ class ScreenPostProcessing extends cc.Component {
     }
 
     // 利用模糊材质处理后 二次截图 减少每帧材质运算的消耗, 需要在截图节点加入到节点树后进行
-    public static render2(renderNode: cc.Node): cc.Node {
+    public static reRenderNode(renderNode: cc.Node): cc.Node {
         if (!cc.isValid(renderNode)) return null;
-        
+
         let texture = this._getRenderTexture(renderNode, renderNode.getContentSize());
         let sp: cc.Sprite = renderNode.getComponent(cc.Sprite);
         // recover texture material

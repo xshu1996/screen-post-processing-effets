@@ -30,7 +30,7 @@ class Main extends cc.Component {
             dlg.setPosition(cc.Vec2.ZERO);
             dlg.addChild(shotNode);
             // 把 BlurNormal.effect blurRadius 的值改的特别大， 执不执行下面这一行代码 FPS的差距就体现出来了
-            ScreenPostProcessing.render2(shotNode);
+            ScreenPostProcessing.reRenderNode(shotNode);
         }, this);
     }
 }
