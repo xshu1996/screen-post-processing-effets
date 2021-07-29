@@ -34,6 +34,7 @@ class ScreenPostProcessing extends cc.Component {
         let texture: cc.RenderTexture;
         if (!cc.isValid(camera.targetTexture) || forceSnapShot) {
             texture = new cc.RenderTexture();
+            camera.targetTexture && delete camera.targetTexture['__targetRenderNode'];
             camera.targetTexture = texture;
         } else {
             texture = camera.targetTexture;
@@ -134,21 +135,18 @@ class ScreenPostProcessing extends cc.Component {
     private static _getShotCameraNode(): cc.Node {
         let camera: cc.Camera;
         let node: cc.Node = cc.Canvas.instance.node.getChildByName("ScreenShotInstance");
-        if (cc.isValid(node)) {
-            // node.active = true;
-        } else {
-            node = new cc.Node("ScreenShotInstance");
-            node.parent = cc.Canvas.instance.node;
-            camera = node.addComponent(cc.Camera);
-            camera.backgroundColor = cc.Color.TRANSPARENT;
-            camera.clearFlags =
-                cc.Camera.ClearFlags.DEPTH |
-                cc.Camera.ClearFlags.STENCIL |
-                cc.Camera.ClearFlags.COLOR;
 
-            camera.cullingMask = 0xffffffff;
-            camera.enabled = false;
-        }
+        node = new cc.Node("ScreenShotInstance");
+        node.parent = cc.Canvas.instance.node;
+        camera = node.addComponent(cc.Camera);
+        camera.backgroundColor = cc.Color.TRANSPARENT;
+        camera.clearFlags =
+            cc.Camera.ClearFlags.DEPTH |
+            cc.Camera.ClearFlags.STENCIL |
+            cc.Camera.ClearFlags.COLOR;
+
+        camera.cullingMask = 0xffffffff;
+        camera.enabled = false;
 
         return node;
     }
