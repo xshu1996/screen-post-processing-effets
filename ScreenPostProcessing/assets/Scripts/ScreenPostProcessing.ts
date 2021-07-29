@@ -19,7 +19,7 @@ class ScreenPostProcessing extends cc.Component {
         ScreenPostProcessing.instance = this;
     }
 
-    private static _getRenderTexture(renderNode: cc.Node, frameSize: cc.Size): cc.RenderTexture {
+    public static getRenderTexture(renderNode: cc.Node, frameSize: cc.Size): cc.RenderTexture {
         let node: cc.Node = this._getShotCameraNode();
         let camera: cc.Camera = node.getComponent(cc.Camera);
 
@@ -43,7 +43,7 @@ class ScreenPostProcessing extends cc.Component {
     public static getScreenShotNode(renderNode: cc.Node, recycleTexture?): cc.Node {
         let texture;
         if (!cc.isValid(recycleTexture)) {
-            texture = this._getRenderTexture(renderNode, cc.size(cc.visibleRect.width + OFF_SET, cc.visibleRect.height + OFF_SET));
+            texture = this.getRenderTexture(renderNode, cc.size(cc.visibleRect.width + OFF_SET, cc.visibleRect.height + OFF_SET));
         } else {
             texture = recycleTexture;
         }
@@ -70,7 +70,7 @@ class ScreenPostProcessing extends cc.Component {
     public static reRenderNode(renderNode: cc.Node): cc.Node {
         if (!cc.isValid(renderNode)) return null;
 
-        let texture = this._getRenderTexture(renderNode, renderNode.getContentSize());
+        let texture = this.getRenderTexture(renderNode, renderNode.getContentSize());
         let sp: cc.Sprite = renderNode.getComponent(cc.Sprite);
         // recover texture material
         sp.setMaterial(0, cc.Material.getBuiltinMaterial('2d-sprite'));
