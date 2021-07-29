@@ -9339,6 +9339,11 @@ declare namespace cc {
 		/** !#en specify the destination Blend Factor.
 		!#zh 指定目标的混合模式 */
 		dstBlendFactor: macro.BlendFactor;	
+
+		/**
+		Refresh the material
+		 */
+		_updateMaterial(): void
 	}	
 	/** !#en The toggle component is a CheckBox, when it used together with a ToggleGroup, it
 	could be treated as a RadioButton.

@@ -46,9 +46,9 @@ class Main extends cc.Component {
     protected update(dt: number): void {
         this._renderList.forEach(ele => {
             let texture = ScreenPostProcessing.getRenderTexture(cc.Canvas.instance.node, cc.size(cc.visibleRect.width + 10, cc.visibleRect.height + 10));
-            let sp = new cc.SpriteFrame();
-            sp.setTexture(texture);
-            ele.getComponent(cc.Sprite).spriteFrame = sp; 
+
+            ele.getComponent(cc.Sprite).spriteFrame.setTexture(texture);
+            ele.getComponent(cc.Sprite)._updateMaterial();
         });
     }
 }
