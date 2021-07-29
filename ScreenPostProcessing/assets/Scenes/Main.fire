@@ -727,7 +727,7 @@
     "p_btnShowPage": {
       "__id__": 16
     },
-    "p_togRealTimeRender": {
+    "p_togRealTimeRendering": {
       "__id__": 23
     },
     "_id": "deUdwGQCpHMpdY0+3IAoLn"
@@ -1464,7 +1464,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 282.32,
+      "width": 335.7,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -1476,7 +1476,7 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        173.153,
+        191.502,
         0,
         0,
         0,
@@ -1516,8 +1516,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "real-time render",
-    "_N$string": "real-time render",
+    "_string": "real-time rendering",
+    "_N$string": "real-time rendering",
     "_fontSize": 40,
     "_lineHeight": 40,
     "_enableWrapText": true,

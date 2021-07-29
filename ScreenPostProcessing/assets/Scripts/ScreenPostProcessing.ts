@@ -34,7 +34,7 @@ class ScreenPostProcessing extends cc.Component {
         camera.targetTexture = texture;
         camera.render(renderNode);
         camera.targetTexture = null;
-        node.active = false;
+        // node.active = false;
 
         return texture;
     }
@@ -109,7 +109,7 @@ class ScreenPostProcessing extends cc.Component {
         let camera: cc.Camera;
         let node: cc.Node = cc.Canvas.instance.node.getChildByName("ScreenShotInstance");
         if (cc.isValid(node)) {
-            node.active = true;
+            // node.active = true;
         } else {
             node = new cc.Node("ScreenShotInstance");
             node.parent = cc.Canvas.instance.node;
@@ -121,6 +121,7 @@ class ScreenPostProcessing extends cc.Component {
                 cc.Camera.ClearFlags.COLOR;
 
             camera.cullingMask = 0xffffffff;
+            camera.enabled = false;
         }
 
         return node;
