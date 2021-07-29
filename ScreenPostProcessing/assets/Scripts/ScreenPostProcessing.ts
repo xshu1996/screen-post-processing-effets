@@ -22,7 +22,7 @@ class ScreenPostProcessing extends cc.Component {
     public static getRenderTexture(renderNode: cc.Node, frameSize: cc.Size): cc.RenderTexture {
         let node: cc.Node = this._getShotCameraNode();
         let camera: cc.Camera = node.getComponent(cc.Camera);
-
+        // 如果只考虑实时模糊效果，可以不用每次 new 一个 cc.RenderTexture 复用 camera 的 targetTexture 可优化效率
         const texture = new cc.RenderTexture();
         texture.initWithSize(frameSize.width, frameSize.height, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
         texture.packable = false;
@@ -126,5 +126,15 @@ class ScreenPostProcessing extends cc.Component {
 
         return node;
     }
+
+    // 排除忽略渲染对象及其子对象
+	private static _cullNode(node: cc.Node, cullingMask: number): void {
+		if (cc.isValid(node)) {
+			node["_cullingMask"] = cullingMask;
+			if (node.childrenCount > 0) {
+				node.children.forEach(child => this._cullNode(child, cullingMask));
+			}
+		}
+	}
 }
 export = ScreenPostProcessing;
