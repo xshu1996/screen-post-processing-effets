@@ -8,6 +8,8 @@ import ScreenPostProcessing = require("./ScreenPostProcessing");
 
 const {ccclass, property} = cc._decorator;
 
+const INTERACTION_UI_Z_INDEX = 1;
+
 @ccclass
 class Main extends cc.Component {
 
@@ -20,9 +22,11 @@ class Main extends cc.Component {
     private _renderList: cc.Node[] = [];
 
     protected onLoad (): void {
+        this.p_btnShowPage.node.zIndex = INTERACTION_UI_Z_INDEX;
+        this.p_togRealTimeRendering.node.zIndex = INTERACTION_UI_Z_INDEX;
         this.p_btnShowPage.node.on('click', () => {
             const recycleImg = ScreenPostProcessing.getRecycleShotTexture();
-            const shotNode = ScreenPostProcessing.getScreenShotNode(cc.Canvas.instance.node, recycleImg);
+            const shotNode = ScreenPostProcessing.getScreenShotNode(cc.Canvas.instance.node, true, recycleImg);
 
             const dlg = new cc.Node('Dialog');
             shotNode.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) => {
@@ -45,7 +49,10 @@ class Main extends cc.Component {
 
     protected update(dt: number): void {
         this._renderList.forEach(ele => {
-            let texture = ScreenPostProcessing.getRenderTexture(cc.Canvas.instance.node, cc.size(cc.visibleRect.width + 10, cc.visibleRect.height + 10));
+            let texture = ScreenPostProcessing.getRenderTexture({ 
+                renderNode: cc.Canvas.instance.node, 
+                frameSize: cc.size(cc.visibleRect.width + 10, cc.visibleRect.height + 10)
+            });
 
             ele.getComponent(cc.Sprite).spriteFrame.setTexture(texture);
             ele.getComponent(cc.Sprite)._updateMaterial();

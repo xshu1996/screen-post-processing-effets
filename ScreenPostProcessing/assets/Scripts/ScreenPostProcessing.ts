@@ -7,6 +7,13 @@
 const { ccclass, property } = cc._decorator;
 const OFF_SET: number = 10;
 
+interface IRenderParam {
+    renderNode: cc.Node,
+    frameSize: cc.Size,
+    forceSnapShot?: boolean,
+    isClear?: boolean,
+}
+
 @ccclass
 class ScreenPostProcessing extends cc.Component {
 
@@ -19,31 +26,46 @@ class ScreenPostProcessing extends cc.Component {
         ScreenPostProcessing.instance = this;
     }
 
-    public static getRenderTexture(renderNode: cc.Node, frameSize: cc.Size): cc.RenderTexture {
-        let node: cc.Node = this._getShotCameraNode();
-        let camera: cc.Camera = node.getComponent(cc.Camera);
+    public static getRenderTexture(renderParam: IRenderParam): cc.RenderTexture {
+        let { renderNode, frameSize, forceSnapShot = false, isClear = false } = renderParam;
+        const node: cc.Node = this._getShotCameraNode();
+        const camera: cc.Camera = node.getComponent(cc.Camera);
         // 如果只考虑实时模糊效果，可以不用每次 new 一个 cc.RenderTexture 复用 camera 的 targetTexture 可优化效率
-        const texture = new cc.RenderTexture();
-        texture.initWithSize(frameSize.width, frameSize.height, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
-        texture.packable = false;
+        let texture: cc.RenderTexture;
+        if (!cc.isValid(camera.targetTexture) || forceSnapShot) {
+            texture = new cc.RenderTexture();
+            camera.targetTexture = texture;
+        } else {
+            texture = camera.targetTexture;
+        }
 
         const worldPos = renderNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
-        const localPos = camera.node.parent.convertToNodeSpaceAR(worldPos);
-        camera.node.setPosition(localPos);
+        const localPos = node.parent.convertToNodeSpaceAR(worldPos);
+        node.setPosition(localPos);
 
-        camera.targetTexture = texture;
+        if (texture['__targetRenderNode'] !== renderNode ||
+            frameSize.width !== texture.width ||
+            frameSize.height !== texture.height) {
+            // initWithSize 已经实现了 texture.packable = false;
+            texture.initWithSize(frameSize.width, frameSize.height, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
+            camera._updateTargetTexture();
+        }
+        texture['__targetRenderNode'] = renderNode;
         camera.render(renderNode);
-        camera.targetTexture = null;
-        // node.active = false;
+        if (isClear) camera.targetTexture = null;
 
         return texture;
     }
 
     // 生成截图节点
-    public static getScreenShotNode(renderNode: cc.Node, recycleTexture?): cc.Node {
+    public static getScreenShotNode(renderNode: cc.Node, createNew: boolean, recycleTexture?): cc.Node {
         let texture;
         if (!cc.isValid(recycleTexture)) {
-            texture = this.getRenderTexture(renderNode, cc.size(cc.visibleRect.width + OFF_SET, cc.visibleRect.height + OFF_SET));
+            texture = this.getRenderTexture({
+                renderNode,
+                frameSize: cc.size(cc.visibleRect.width + OFF_SET, cc.visibleRect.height + OFF_SET),
+                forceSnapShot: createNew
+            });
         } else {
             texture = recycleTexture;
         }
@@ -70,13 +92,17 @@ class ScreenPostProcessing extends cc.Component {
     public static reRenderNode(renderNode: cc.Node): cc.Node {
         if (!cc.isValid(renderNode)) return null;
 
-        let texture = this.getRenderTexture(renderNode, renderNode.getContentSize());
+        let texture: cc.RenderTexture = this.getRenderTexture({
+            renderNode,
+            frameSize: renderNode.getContentSize(),
+            forceSnapShot: true,
+            isClear: true,
+        });
         let sp: cc.Sprite = renderNode.getComponent(cc.Sprite);
         // recover texture material
         sp.setMaterial(0, cc.Material.getBuiltinMaterial('2d-sprite'));
-        const spf = new cc.SpriteFrame();
-        spf.setTexture(texture);
-        sp.spriteFrame = spf;
+        sp.spriteFrame.setTexture(texture);
+        sp._updateMaterial();
         renderNode.scaleY = -1;
 
         return renderNode;
@@ -128,13 +154,13 @@ class ScreenPostProcessing extends cc.Component {
     }
 
     // 排除忽略渲染对象及其子对象
-	private static _cullNode(node: cc.Node, cullingMask: number): void {
-		if (cc.isValid(node)) {
-			node["_cullingMask"] = cullingMask;
-			if (node.childrenCount > 0) {
-				node.children.forEach(child => this._cullNode(child, cullingMask));
-			}
-		}
-	}
+    private static _cullNode(node: cc.Node, cullingMask: number): void {
+        if (cc.isValid(node)) {
+            node["_cullingMask"] = cullingMask;
+            if (node.childrenCount > 0) {
+                node.children.forEach(child => this._cullNode(child, cullingMask));
+            }
+        }
+    }
 }
 export = ScreenPostProcessing;

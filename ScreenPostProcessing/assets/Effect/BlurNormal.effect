@@ -37,7 +37,7 @@ CCProgram fs %{
     vec2 u_resolution;
     float u_brightness;
   };
-  const float blurRadius = 7.0;
+  const float blurRadius = 12.0;
 
   // 降低亮度
   vec4 dim(vec4 col, float factor) {

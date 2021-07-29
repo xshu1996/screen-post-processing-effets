@@ -18,7 +18,8 @@
           "x": 750,
           "y": 1334
         },
-        "u_brightness": 0.3
+        "u_brightness": 1,
+        "u_intensity": 3
       }
     }
   }

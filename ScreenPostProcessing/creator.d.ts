@@ -5779,6 +5779,8 @@ declare namespace cc {
 		@param out the matrix to receive the result 
 		*/
 		getWorldToCameraMatrix(out: Mat4): Mat4;	
+
+		_updateTargetTexture(): void;
 	}	
 	/** !#en The Light Component
 	
