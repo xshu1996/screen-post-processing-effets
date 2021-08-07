@@ -1,5 +1,9 @@
 # screen-post-processing-effets
 
+## 准备工作
+
+使用 cocos creator 2.4.6 打开项目
+
 ## static render 截图屏幕后处理效果
 
 &emsp;&emsp;采用 摄像机截图（`getRenderTexture`) -> 应用高斯模糊（or other material）-> 截图( `reRenderNode` ) 生成 `texture` 应用到弹窗底图。<br>同时如果存在多个弹窗，可以补全 `getRecycleShotTexture` 函数判断是否存在可重复利用的 renderTexture ，从而减少摄像机截图带来的性能开销。
