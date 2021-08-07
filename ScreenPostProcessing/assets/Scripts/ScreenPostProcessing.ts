@@ -5,7 +5,7 @@
  */
 
 const { ccclass, property } = cc._decorator;
-const OFF_SET: number = 10;
+const OFF_SET: number = 0;
 
 interface IRenderParam {
     renderNode: cc.Node,
@@ -14,16 +14,34 @@ interface IRenderParam {
     isClear?: boolean,
 }
 
+export enum EffectType {
+    BlurGauss = 0, // 高斯模糊
+    PencilSketch, // 手绘风格
+}
+
 @ccclass
-class ScreenPostProcessing extends cc.Component {
+export class ScreenPostProcessing extends cc.Component {
 
     public static instance: ScreenPostProcessing = null;
+    public static effectType: EffectType = EffectType.BlurGauss;
 
     @property(cc.Material)
     public p_mtlBlurGauss: cc.Material = null;
 
+    @property(cc.Material)
+    public p_mtlPencilSketch: cc.Material = null;
+
     protected onLoad(): void {
         ScreenPostProcessing.instance = this;
+    }
+
+    public static setEffectType(type: EffectType): void {
+        type = cc.misc.clampf(type, 0, Object.keys(EffectType).length / 2 - 1);
+        this.effectType = type;
+    }
+
+    public static getEffectType(): EffectType {
+        return this.effectType;
     }
 
     public static getRenderTexture(renderParam: IRenderParam): cc.RenderTexture {
@@ -60,7 +78,7 @@ class ScreenPostProcessing extends cc.Component {
 
     // 生成截图节点
     public static getScreenShotNode(renderNode: cc.Node, createNew: boolean, recycleTexture?): cc.Node {
-        let texture;
+        let texture: cc.RenderTexture;
         if (!cc.isValid(recycleTexture)) {
             texture = this.getRenderTexture({
                 renderNode,
@@ -78,13 +96,30 @@ class ScreenPostProcessing extends cc.Component {
         // 某些特殊纯色底图会导致穿透
         sp.dstBlendFactor = cc.macro.BlendFactor.ONE_MINUS_DST_ALPHA;
 
-        sp.setMaterial(0, this.instance.p_mtlBlurGauss);
-        this.instance.p_mtlBlurGauss.setProperty("u_resolution", cc.v2(texture.width, texture.height));
+        this._dealTexture(sp, texture);
 
         const spf = new cc.SpriteFrame();
         spf.setTexture(texture);
         sp.spriteFrame = spf;
         ret.scaleY = -1;
+
+        return ret;
+    }
+
+    private static _dealTexture(sp: cc.Sprite, texture: cc.RenderTexture): boolean {
+        let ret: boolean = true;
+        switch (this.effectType) {
+            case EffectType.BlurGauss:
+                sp.setMaterial(0, this.instance.p_mtlBlurGauss);
+                this.instance.p_mtlBlurGauss.setProperty("u_resolution", cc.v2(texture.width, texture.height));
+                break;
+            case EffectType.PencilSketch:
+                sp.setMaterial(0, this.instance.p_mtlPencilSketch);
+                break;
+            default:
+                ret = false;
+                break;
+        }
 
         return ret;
     }
@@ -161,4 +196,3 @@ class ScreenPostProcessing extends cc.Component {
         }
     }
 }
-export = ScreenPostProcessing;

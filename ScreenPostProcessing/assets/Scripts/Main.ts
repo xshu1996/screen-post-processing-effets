@@ -4,9 +4,9 @@
  * @description ...
  */
 
-import ScreenPostProcessing = require("./ScreenPostProcessing");
+import { ScreenPostProcessing, EffectType } from "./ScreenPostProcessing";
 
-const {ccclass, property} = cc._decorator;
+const { ccclass, property } = cc._decorator;
 
 const INTERACTION_UI_Z_INDEX = 1;
 
@@ -19,11 +19,26 @@ class Main extends cc.Component {
     @property(cc.Toggle)
     public p_togRealTimeRendering: cc.Toggle = null;
 
+    @property(cc.Slider)
+    public p_sliderModifyParam: cc.Slider = null;
+
+    @property(cc.ToggleContainer)
+    public p_tgSelectEffect: cc.ToggleContainer = null;
+
     private _renderList: cc.Node[] = [];
 
-    protected onLoad (): void {
+    protected onLoad(): void {
         this.p_btnShowPage.node.zIndex = INTERACTION_UI_Z_INDEX;
         this.p_togRealTimeRendering.node.zIndex = INTERACTION_UI_Z_INDEX;
+        this.p_sliderModifyParam.node.zIndex = INTERACTION_UI_Z_INDEX;
+        this.p_tgSelectEffect.node.zIndex = INTERACTION_UI_Z_INDEX;
+
+        this._refreshUIVisible();
+
+        this._addUIEvent();
+    }
+
+    private _addUIEvent(): void {
         this.p_btnShowPage.node.on('click', () => {
             const recycleImg = ScreenPostProcessing.getRecycleShotTexture();
             const shotNode = ScreenPostProcessing.getScreenShotNode(cc.Canvas.instance.node, true, recycleImg);
@@ -45,12 +60,28 @@ class Main extends cc.Component {
                 ScreenPostProcessing.reRenderNode(shotNode);
             }
         }, this);
+
+        this.p_sliderModifyParam.node.on('slide', (event) => {
+            let val: number = this.p_sliderModifyParam.progress * 8 - 4;
+            ScreenPostProcessing.instance.p_mtlPencilSketch.setProperty('uIntensity', val);
+        }, this);
+
+        this.p_tgSelectEffect.toggleItems.forEach((ele, index) => {
+            ele.node.on('toggle', () => {
+                ScreenPostProcessing.setEffectType(index);
+                this._refreshUIVisible();
+            }, this);
+        });
+    }
+
+    private _refreshUIVisible(): void {
+        this.p_sliderModifyParam.node.active = ScreenPostProcessing.getEffectType() === EffectType.PencilSketch;
     }
 
     protected update(dt: number): void {
         this._renderList.forEach(ele => {
-            let texture = ScreenPostProcessing.getRenderTexture({ 
-                renderNode: cc.Canvas.instance.node, 
+            let texture = ScreenPostProcessing.getRenderTexture({
+                renderNode: cc.Canvas.instance.node,
                 frameSize: cc.size(cc.visibleRect.width + 10, cc.visibleRect.height + 10)
             });
 
