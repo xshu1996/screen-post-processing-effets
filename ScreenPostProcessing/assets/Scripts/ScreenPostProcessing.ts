@@ -65,8 +65,14 @@ export class ScreenPostProcessing extends cc.Component {
         if (texture['__targetRenderNode'] !== renderNode ||
             frameSize.width !== texture.width ||
             frameSize.height !== texture.height) {
-            // initWithSize 已经实现了 texture.packable = false;
+            // 对图片进行边缘检测，图片部分边缘的梯度会比较大
+            // （超出图片 uv 范围取到的纹素为黑色， 如果图片的边缘刚好偏白，那么计算出来的梯度就会很大）
+            // 最后使用 shader 处理过后的图片，周边会有很明显的黑线
+            // 暂时想到的办法是 截图后，重新填充一遍图片的数据，人工给图片阔边，填充边缘像素的颜色
+            // 最后进行边缘检测时，图片边缘的梯度平滑
             texture.initWithSize(frameSize.width, frameSize.height, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
+            // initWithSize 已经实现了 texture.packable = false;
+            texture.setPremultiplyAlpha(true);
             camera._updateTargetTexture();
         }
         texture['__targetRenderNode'] = renderNode;
@@ -171,17 +177,19 @@ export class ScreenPostProcessing extends cc.Component {
         let camera: cc.Camera;
         let node: cc.Node = cc.Canvas.instance.node.getChildByName("ScreenShotInstance");
 
-        node = new cc.Node("ScreenShotInstance");
-        node.parent = cc.Canvas.instance.node;
-        camera = node.addComponent(cc.Camera);
-        camera.backgroundColor = cc.Color.TRANSPARENT;
-        camera.clearFlags =
-            cc.Camera.ClearFlags.DEPTH |
-            cc.Camera.ClearFlags.STENCIL |
-            cc.Camera.ClearFlags.COLOR;
-
-        camera.cullingMask = 0xffffffff;
-        camera.enabled = false;
+        if (!cc.isValid(node)) {
+            node = new cc.Node("ScreenShotInstance");
+            node.parent = cc.Canvas.instance.node;
+            camera = node.addComponent(cc.Camera);
+            camera.backgroundColor = cc.Color.TRANSPARENT;
+            camera.clearFlags =
+                cc.Camera.ClearFlags.DEPTH |
+                cc.Camera.ClearFlags.STENCIL |
+                cc.Camera.ClearFlags.COLOR;
+    
+            camera.cullingMask = 0xffffffff;
+            camera.enabled = false;
+        }
 
         return node;
     }
