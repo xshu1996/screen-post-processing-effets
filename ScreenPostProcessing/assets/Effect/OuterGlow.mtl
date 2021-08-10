@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.Material",
+  "_name": "OuterGlow",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "be877ec3-a67c-498a-b0a7-f874be3aa25b"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {
+        "USE_TEXTURE": true
+      },
+      "props": {
+        "uGlowColor": {
+          "__type__": "cc.Color",
+          "r": 255,
+          "g": 220,
+          "b": 24,
+          "a": 255
+        },
+        "uSize": 0.5,
+        "uIntensity": 3
+      }
+    }
+  }
+}
