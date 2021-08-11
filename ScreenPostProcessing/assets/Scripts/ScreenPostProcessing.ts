@@ -5,7 +5,7 @@
  */
 
 const { ccclass, property } = cc._decorator;
-const OFF_SET: number = 0;
+const OFF_SET: number = 1; // 图片扩边长度
 
 interface IRenderParam {
     renderNode: cc.Node,
@@ -68,7 +68,7 @@ export class ScreenPostProcessing extends cc.Component {
             // 对图片进行边缘检测，图片部分边缘的梯度会比较大
             // （超出图片 uv 范围取到的纹素为黑色， 如果图片的边缘刚好偏白，那么计算出来的梯度就会很大）
             // 最后使用 shader 处理过后的图片，周边会有很明显的黑线
-            // 暂时想到的办法是 截图后，重新填充一遍图片的数据，人工给图片阔边，填充边缘像素的颜色
+            // 暂时想到的办法是 截图后，重新填充一遍图片的数据，人工给图片阔边，填充透明
             // 最后进行边缘检测时，图片边缘的梯度平滑
             texture.initWithSize(frameSize.width, frameSize.height, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
             // initWithSize 已经实现了 texture.packable = false;
@@ -78,6 +78,10 @@ export class ScreenPostProcessing extends cc.Component {
         texture['__targetRenderNode'] = renderNode;
         camera.render(renderNode);
         if (isClear) camera.targetTexture = null;
+        // let data: Uint8Array = texture.readPixels();
+        // // @ts-ignore
+        // data = this._extensionImg(data, frameSize.width, frameSize.height);
+        // texture.initWithData(data, cc.Texture2D.PixelFormat.RGBA8888, frameSize.width + 2 * OFF_SET, frameSize.height + 2 * OFF_SET);
 
         return texture;
     }
@@ -88,7 +92,7 @@ export class ScreenPostProcessing extends cc.Component {
         if (!cc.isValid(recycleTexture)) {
             texture = this.getRenderTexture({
                 renderNode,
-                frameSize: cc.size(cc.visibleRect.width + OFF_SET, cc.visibleRect.height + OFF_SET),
+                frameSize: cc.size(cc.visibleRect.width, cc.visibleRect.height),
                 forceSnapShot: createNew
             });
         } else {
@@ -166,6 +170,28 @@ export class ScreenPostProcessing extends cc.Component {
         return picData;
     }
 
+    private static _extensionImg(data: any[], width: number, height: number): Uint8Array {
+        // 四方向扩边 OFF_SET = 1
+        const bWidth: number = width + 2 * OFF_SET;
+        const bHeight: number = height + 2 * OFF_SET;
+
+        const area: number = bWidth * bHeight * 4;
+        const picData: Uint8Array = new Uint8Array(area);
+        picData.fill(1, 0, area);
+
+        let rowBytes: number = width * 4;
+        for (let row = 0; row < height; ++row) {
+            let realRow = row;
+            let start = realRow * width * 4;
+            let reStart = (row + OFF_SET) * bWidth * 4;
+            for (let i = 0; i < rowBytes; ++i) {
+                picData[reStart + i + 4 * OFF_SET] = data[start + i];
+            }
+        }
+
+        return picData;
+    }
+
     // 多层弹窗界面，可以重复利用一张截图，无需多次截图消耗性能 具体判断逻辑根据项目来 预留接口
     public static getRecycleShotTexture(): cc.Texture2D | null {
         let ret = null;
@@ -186,7 +212,7 @@ export class ScreenPostProcessing extends cc.Component {
                 cc.Camera.ClearFlags.DEPTH |
                 cc.Camera.ClearFlags.STENCIL |
                 cc.Camera.ClearFlags.COLOR;
-    
+
             camera.cullingMask = 0xffffffff;
             camera.enabled = false;
         }
