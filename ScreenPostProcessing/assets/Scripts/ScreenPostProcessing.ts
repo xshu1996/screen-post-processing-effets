@@ -9,7 +9,7 @@ const OFF_SET: number = 1; // 图片扩边长度
 
 interface IRenderParam {
     renderNode: cc.Node,
-    frameSize: cc.Size,
+    frameSize: cc.Size, // IMPORTANT 一定要传入整数！！！！
     forceSnapShot?: boolean,
     isClear?: boolean,
 }
@@ -78,6 +78,7 @@ export class ScreenPostProcessing extends cc.Component {
         texture['__targetRenderNode'] = renderNode;
         camera.render(renderNode);
         if (isClear) camera.targetTexture = null;
+        // 图片扩边操作
         // let data: Uint8Array = texture.readPixels();
         // // @ts-ignore
         // data = this._extensionImg(data, frameSize.width, frameSize.height);
@@ -92,7 +93,7 @@ export class ScreenPostProcessing extends cc.Component {
         if (!cc.isValid(recycleTexture)) {
             texture = this.getRenderTexture({
                 renderNode,
-                frameSize: cc.size(cc.visibleRect.width, cc.visibleRect.height),
+                frameSize: cc.size(Math.ceil(cc.visibleRect.width), Math.ceil(cc.visibleRect.height)),
                 forceSnapShot: createNew
             });
         } else {
@@ -137,10 +138,10 @@ export class ScreenPostProcessing extends cc.Component {
     // 利用模糊材质处理后 二次截图 减少每帧材质运算的消耗, 需要在截图节点加入到节点树后进行
     public static reRenderNode(renderNode: cc.Node): cc.Node {
         if (!cc.isValid(renderNode)) return null;
-
+        const renderSize = renderNode.getContentSize();
         let texture: cc.RenderTexture = this.getRenderTexture({
             renderNode,
-            frameSize: renderNode.getContentSize(),
+            frameSize: cc.size(Math.ceil(renderSize.width), Math.ceil(renderSize.height)),
             forceSnapShot: true,
             isClear: true,
         });
@@ -154,7 +155,7 @@ export class ScreenPostProcessing extends cc.Component {
         return renderNode;
     }
 
-    // 翻转图片像素Y轴数据，一般直接翻转节点 scaleY = -1
+    // 翻转图片像素Y轴数据，一般直接翻转节点
     private static _flipYImage(data: any[], width: number, height: number): Uint8Array {
         let picData = new Uint8Array(width * height * 4);
         let rowBytes = width * 4;
@@ -181,7 +182,7 @@ export class ScreenPostProcessing extends cc.Component {
 
         let rowBytes: number = width * 4;
         for (let row = 0; row < height; ++row) {
-            let realRow = row;
+            let realRow = height - 1 - row;
             let start = realRow * width * 4;
             let reStart = (row + OFF_SET) * bWidth * 4;
             for (let i = 0; i < rowBytes; ++i) {

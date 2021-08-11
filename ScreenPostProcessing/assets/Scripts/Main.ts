@@ -82,7 +82,7 @@ class Main extends cc.Component {
         this._renderList.forEach(ele => {
             let texture = ScreenPostProcessing.getRenderTexture({
                 renderNode: cc.Canvas.instance.node,
-                frameSize: cc.size(cc.visibleRect.width + 10, cc.visibleRect.height + 10)
+                frameSize: cc.size(Math.ceil(cc.visibleRect.width), Math.ceil(cc.visibleRect.height))
             });
 
             ele.getComponent(cc.Sprite).spriteFrame.setTexture(texture);
