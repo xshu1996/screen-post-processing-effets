@@ -63,7 +63,7 @@ class Main extends cc.Component {
 
         this.p_sliderModifyParam.node.on('slide', (event) => {
             let val: number = this.p_sliderModifyParam.progress * 8 - 4;
-            ScreenPostProcessing.instance.p_mtlPencilSketch.setProperty('uIntensity', val);
+            ScreenPostProcessing.getInstance().p_mtlPencilSketch.setProperty('uIntensity', val);
         }, this);
 
         this.p_tgSelectEffect.toggleItems.forEach((ele, index) => {

@@ -22,7 +22,10 @@ export enum EffectType {
 @ccclass
 export class ScreenPostProcessing extends cc.Component {
 
-    public static instance: ScreenPostProcessing = null;
+    private static instance: ScreenPostProcessing = null;
+    public static getInstance(): ScreenPostProcessing {
+        return this.instance;
+    }
     public static effectType: EffectType = EffectType.BlurGauss;
 
     @property(cc.Material)
@@ -81,7 +84,7 @@ export class ScreenPostProcessing extends cc.Component {
         // 图片扩边操作
         // let data: Uint8Array = texture.readPixels();
         // // @ts-ignore
-        // data = this._extensionImg(data, frameSize.width, frameSize.height);
+        // data = this._extendTexture(data, frameSize.width, frameSize.height);
         // texture.initWithData(data, cc.Texture2D.PixelFormat.RGBA8888, frameSize.width + 2 * OFF_SET, frameSize.height + 2 * OFF_SET);
 
         return texture;
@@ -171,7 +174,23 @@ export class ScreenPostProcessing extends cc.Component {
         return picData;
     }
 
-    private static _extensionImg(data: any[], width: number, height: number): Uint8Array {
+    // 对图片扩边
+    private static _extensionImg(texture: cc.Texture2D, offset: number): cc.RenderTexture {
+        const bWidth: number = texture.width + offset * 2;
+        const bHeight: number = texture.height + offset * 2;
+        const area: number = bHeight * bWidth * 4;
+        const ret = new cc.RenderTexture();
+        ret.initWithSize(bWidth, bHeight, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
+        ret.initWithData(new Uint8Array(area).fill(0), cc.Texture2D.PixelFormat.RGB888, bWidth, bHeight);
+        ret.packable = false;
+        // @ts-ignore
+        ret.drawTextureAt(texture, offset, offset);
+
+        return ret;
+    }
+
+    // 对 texture 扩边
+    private static _extendTexture(data: any[], width: number, height: number): Uint8Array {
         // 四方向扩边 OFF_SET = 1
         const bWidth: number = width + 2 * OFF_SET;
         const bHeight: number = height + 2 * OFF_SET;
@@ -231,3 +250,5 @@ export class ScreenPostProcessing extends cc.Component {
         }
     }
 }
+
+window['ScreenPostMgr'] = ScreenPostProcessing;
