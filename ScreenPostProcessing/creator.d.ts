@@ -6768,6 +6768,7 @@ declare namespace cc {
 		/** !#en Right border of the sprite
 		!#zh sprite 的左边边框 */
 		insetRight: number;		
+        uv: number[];
 		/**
 		!#en
 		Constructor of SpriteFrame class.
