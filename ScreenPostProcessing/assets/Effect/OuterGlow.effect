@@ -24,6 +24,14 @@ techniques:
               - 1.000
             inspector: 
               type: color
+          uRotated:
+            value: 0.0
+          uUVOffset:
+            value:
+              - 0.0
+              - 0.0
+              - 1.0
+              - 1.0
 }%
         
 CCProgram vs %{
@@ -69,11 +77,31 @@ CCProgram fs %{
     #endif
     in vec4 v_color;
     uniform Constant {
-		vec4 uGlowColor;
-		float uIntensity;
-		float uSize;
-	};
+      vec4 uUVOffset;
+      vec4 uGlowColor;
+      float uIntensity;
+      float uSize;
+      float uRotated;
+    };
 	uniform sampler2D uTex;
+
+  // 把图集内的图片的 uv 坐标换算映射到 0.0 ～ 1.0 或者反之
+  float linear(float x0, float x1, float y0, float y1, float inputX) 
+  {
+     return (y1 - y0) * (inputX - x0) / (x1 - x0) + y0;
+  }
+
+  // 图片是否旋转
+  vec2 rotateVec (vec2 uv) 
+  {
+      if (uRotated > 0.5)
+      {
+          float tmp = uv.x;
+          uv.x = uv.y;
+          uv.y = 1.0 - tmp;
+      }
+      return uv;
+  }
 
     
 	vec4 OuterGlow_main(sampler2D Tex, vec2 UV, float Intensity, float Size, vec4 GlowColor) 
@@ -88,7 +116,23 @@ CCProgram fs %{
 	            vec2 uv2 = vec2(ix, iy);
 	            uv2 /= float(samplers);
 	            uv2 *= Size * 0.1;
-	            uv2 = clamp(UV + uv2, 0.0, 1.0);
+	            
+              // 0 - 1 范围内的真实 uv
+              vec2 r_uv = vec2(
+                linear(uUVOffset.x, uUVOffset.z, 0.0, 1.0, UV.x),
+                linear(uUVOffset.y, uUVOffset.w, 0.0, 1.0, UV.y)
+              );
+              r_uv = rotateVec(r_uv);
+
+	            uv2 = clamp(r_uv + uv2, 0.0, 1.0);
+
+              // recover 还原到图片的 uv 范围内
+              uv2 = vec2(
+                linear(0.0, 1.0, uUVOffset.x, uUVOffset.z, uv2.x),
+                linear(0.0, 1.0, uUVOffset.y, uUVOffset.w, uv2.y)
+              );
+              uv2 = rotateVec(uv2);
+
 	            ret += texture2D(Tex, uv2);
 	            count++;
 	        }
