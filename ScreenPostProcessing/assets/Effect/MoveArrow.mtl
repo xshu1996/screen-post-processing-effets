@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.Material",
+  "_name": "MoveArrow",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "066957ed-5c85-4c74-86c9-600442fee116"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {
+        "USE_TEXTURE": true,
+        "NEED_REVERSE": true
+      },
+      "props": {
+        "m_speed": 0.5,
+        "m_bgCol": {
+          "__type__": "cc.Vec4",
+          "x": 0,
+          "y": 1,
+          "z": 0,
+          "w": 1
+        }
+      }
+    }
+  }
+}

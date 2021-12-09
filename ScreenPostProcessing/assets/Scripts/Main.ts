@@ -57,12 +57,14 @@ class Main extends cc.Component
         if (this._curProgress === -0.05)
         {
             cc.log("进度条已清空");
-            this._progressIncrement = 0;
+            // this._progressIncrement = 0;
+            this._progressIncrement = -this._progressIncrement;
         }
         if (this._curProgress === 1)
         {
             cc.log("进度条已满");
-            this._progressIncrement = 0;
+            // this._progressIncrement = 0;
+            this._progressIncrement = -this._progressIncrement;
         }
     }
 
