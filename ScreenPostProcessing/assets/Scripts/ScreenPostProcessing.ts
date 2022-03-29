@@ -69,7 +69,7 @@ export class ScreenPostProcessing extends cc.Component {
     /** 无复用截图，每次重新生成 */
     public static getRenderTexture(renderParam: IRenderParam): cc.RenderTexture {
         let { renderNode, frameSize, isClear = true } = renderParam;
-        const node: cc.Node = this._getShotCameraNode();
+        const node: cc.Node = this._getShotCameraNode(frameSize);
         const camera: cc.Camera = node.getComponent(cc.Camera);
 
         let texture: cc.RenderTexture = new cc.RenderTexture();
@@ -93,7 +93,7 @@ export class ScreenPostProcessing extends cc.Component {
     /** 可复用截图 */
     public static getRenderTextureFaster(renderParam: IRenderParam): cc.RenderTexture {
         let { renderNode, frameSize, forceSnapShot = false, isClear = false } = renderParam;
-        const node: cc.Node = this._getShotCameraNode();
+        const node: cc.Node = this._getShotCameraNode(frameSize);
         const camera: cc.Camera = node.getComponent(cc.Camera);
         // 如果只考虑实时模糊效果，可以不用每次 new 一个 cc.RenderTexture 复用 camera 的 targetTexture 可优化效率
         let texture: cc.RenderTexture;
@@ -140,7 +140,7 @@ export class ScreenPostProcessing extends cc.Component {
         if (!cc.isValid(recycleTexture)) {
             texture = this.getRenderTexture({
                 renderNode,
-                frameSize: cc.size(Math.ceil(cc.visibleRect.width), Math.ceil(cc.visibleRect.height)),
+                frameSize: cc.size(Math.ceil(renderNode.width), Math.ceil(renderNode.height)),
                 forceSnapShot: createNew
             });
         } else {
@@ -263,7 +263,7 @@ export class ScreenPostProcessing extends cc.Component {
         return ret;
     }
 
-    private static _getShotCameraNode(): cc.Node {
+    private static _getShotCameraNode(frameSize: cc.Size): cc.Node {
         let camera: cc.Camera;
         let node: cc.Node = cc.Canvas.instance.node.getChildByName("ScreenShotInstance");
 
@@ -279,8 +279,10 @@ export class ScreenPostProcessing extends cc.Component {
 
             camera.cullingMask = 0xffffffff;
             camera.enabled = false;
+        } else {
+            camera = node.getComponent(cc.Camera);
         }
-
+        camera.zoomRatio = cc.winSize.height / frameSize.height;
         return node;
     }
 
