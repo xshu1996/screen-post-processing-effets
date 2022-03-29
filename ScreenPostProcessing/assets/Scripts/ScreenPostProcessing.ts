@@ -66,7 +66,32 @@ export class ScreenPostProcessing extends cc.Component {
         return ret;
     }
 
+    /** 无复用截图，每次重新生成 */
     public static getRenderTexture(renderParam: IRenderParam): cc.RenderTexture {
+        let { renderNode, frameSize, isClear = true } = renderParam;
+        const node: cc.Node = this._getShotCameraNode();
+        const camera: cc.Camera = node.getComponent(cc.Camera);
+
+        let texture: cc.RenderTexture = new cc.RenderTexture();
+        camera.targetTexture = texture;
+
+        const worldPos = renderNode.convertToWorldSpaceAR(cc.Vec2.ZERO);
+        const localPos = node.parent.convertToNodeSpaceAR(worldPos);
+        node.setPosition(localPos);
+
+        texture.initWithSize(frameSize.width, frameSize.height, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
+        // initWithSize 已经实现了 texture.packable = false;
+        texture.setPremultiplyAlpha(true);
+        camera._updateTargetTexture();
+
+        camera.render(renderNode);
+        if (isClear) camera.targetTexture = null;
+
+        return texture;
+    }
+
+    /** 可复用截图 */
+    public static getRenderTextureFaster(renderParam: IRenderParam): cc.RenderTexture {
         let { renderNode, frameSize, forceSnapShot = false, isClear = false } = renderParam;
         const node: cc.Node = this._getShotCameraNode();
         const camera: cc.Camera = node.getComponent(cc.Camera);
