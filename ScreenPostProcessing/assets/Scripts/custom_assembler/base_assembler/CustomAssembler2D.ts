@@ -1,5 +1,7 @@
 // 自定义渲染
-// https://docs.cocos.com/creator/2.4/manual/zh/advanced-topics/custom-render.html?h=assembler
+// https://docs.cocos.com/creator/2.4/manual/zh/advanced-topics/custom-render.html
+
+
 // @ts-ignore
 export default class CustomAssembler2D extends cc.Assembler
 {

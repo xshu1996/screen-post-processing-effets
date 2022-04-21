@@ -3,7 +3,7 @@ import CustomAssembler2D from "./CustomAssembler2D";
 export default class CustomSpriteAssembler2D extends CustomAssembler2D
 {
     // 这部分使用SimpleSpriteAssembler的内容
-    updateRenderData(sprite: cc.Sprite)
+    protected updateRenderData(sprite: cc.Sprite)
     {
         this.packToDynamicAtlas(sprite, sprite.spriteFrame);
         super.updateRenderData(sprite);

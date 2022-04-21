@@ -19,8 +19,6 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
     floatsPerVert: number = 5;
 
     // ------------------- Custom Field ---------------- //
-    // 自定义数据，将被写入uv1的位置
-    // public moveSpeed: cc.Vec2 = VEC2_ZERO;
     indicesArr: number[] = [];
 
     initData()
@@ -46,6 +44,19 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
         // }
     }
 
+    /** 更新renderdata */
+    protected updateRenderData(comp)
+    {
+        if (comp._vertsDirty)
+        {
+            this.resetData(comp);
+            this.updateUVs(comp);
+            this.updateVerts(comp);
+            this.updateColor(comp, null);
+            comp._vertsDirty = false;
+        }
+    }
+
     // 自定义格式以getVfmt()方式提供出去，除了当前assembler，render-flow的其他地方也会用到
     getVfmt()
     {
@@ -60,7 +71,7 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
         return cc.renderer._handle.getBuffer("mesh", this.getVfmt());
     }
 
-    // pos数据没有变化，不用重载
+    // pos数据有变化
     updateVerts(sprite)
     {
         this.indicesArr = MathUtils.splitPolygon2Triangle(sprite.polygon);
@@ -81,7 +92,6 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
         const verts = this._renderData.vDatas[0];
         // @ts-ignore
         let o_uv = sprite._spriteFrame.uv;
-        console.log(sprite);
         let uvs = [];
         const l = o_uv[0], b = o_uv[1], t = o_uv[7], r = o_uv[6];
         cc.log(l, r, b, t);
@@ -169,7 +179,8 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
         if (vData.length + vertexOffset > vbuf.length)
         {
             vbuf.set(vData.subarray(0, vbuf.length - vertexOffset), vertexOffset);
-        } else
+        } 
+        else
         {
             vbuf.set(vData, vertexOffset);
         }
