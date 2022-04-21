@@ -135,10 +135,10 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 100
+        "__id__": 101
       },
       {
-        "__id__": 101
+        "__id__": 102
       }
     ],
     "_prefab": null,
@@ -4957,6 +4957,9 @@
     "_components": [
       {
         "__id__": 99
+      },
+      {
+        "__id__": 100
       }
     ],
     "_prefab": null,
@@ -4970,8 +4973,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 449,
-      "height": 313
+      "width": 195,
+      "height": 270
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -4982,8 +4985,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        65.306,
-        -304.232,
+        -110.794,
+        -225.22,
         0,
         0,
         0,
@@ -5023,7 +5026,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "d8181469-de40-4881-9bec-1aa706e9bec5"
+      "__uuid__": "6b6bee6d-15cd-443a-91b9-e4f60b84a193"
     },
     "_type": 0,
     "_sizeMode": 1,
@@ -5037,56 +5040,34 @@
     "_fillRange": 0,
     "_isTrimmedMode": true,
     "_atlas": null,
-    "_moveSpeed": {
-      "__type__": "cc.Vec2",
-      "x": 0.2,
-      "y": 0
-    },
-    "_vertices": [
+    "_polygon": [
       {
         "__type__": "cc.Vec2",
-        "x": -224.5,
-        "y": -156.5
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 224.5,
-        "y": -156.5
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 224.5,
-        "y": 156.5
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": -224.5,
-        "y": 156.5
-      }
-    ],
-    "_uvs": [
-      {
-        "__type__": "cc.Vec2",
-        "x": 0,
-        "y": 0
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 1,
-        "y": 0
-      },
-      {
-        "__type__": "cc.Vec2",
-        "x": 1,
-        "y": 1
+        "x": -97.5,
+        "y": -100
       },
       {
         "__type__": "cc.Vec2",
         "x": 0,
-        "y": 1
+        "y": 100
+      },
+      {
+        "__type__": "cc.Vec2",
+        "x": 97.5,
+        "y": -100
       }
     ],
     "_id": "abGt9ACi5Ol7SnMXuWJrS+"
+  },
+  {
+    "__type__": "08d86k8sC5JL5PyLiRuJZii",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 98
+    },
+    "_enabled": true,
+    "_id": "76DG/QzadDM5H3+uFOBt5L"
   },
   {
     "__type__": "cc.Canvas",

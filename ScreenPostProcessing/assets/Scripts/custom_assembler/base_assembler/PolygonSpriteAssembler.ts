@@ -1,4 +1,4 @@
-import PolygonSprite from "../../PolygonSprite";
+import { MathUtils } from "../../Utils/Utils";
 import CustomSpriteAssembler2D from "./CustomSpriteAssembler2D";
 
 // 自定义顶点格式，在vfmtPosUvColor基础上，加入gfx.ATTR_UV1，去掉gfx.ATTR_COLOR
@@ -8,8 +8,6 @@ var vfmtCustom = new gfx.VertexFormat([
     { name: gfx.ATTR_UV0, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },        // texture纹理uv
     { name: gfx.ATTR_COLOR, type: gfx.ATTR_TYPE_UINT8, num: 4, normalize: true }
 ]);
-
-const VEC2_ZERO = cc.Vec2.ZERO;
 
 export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
 {
@@ -23,8 +21,7 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
     // ------------------- Custom Field ---------------- //
     // 自定义数据，将被写入uv1的位置
     // public moveSpeed: cc.Vec2 = VEC2_ZERO;
-
-    public vertCustom: cc.Vec2[] = new Array(4);
+    indicesArr: number[] = [];
 
     initData()
     {
@@ -64,8 +61,11 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
     }
 
     // pos数据没有变化，不用重载
-    // updateVerts(sprite) {
-    // }
+    updateVerts(sprite)
+    {
+        this.indicesArr = MathUtils.splitPolygon2Triangle(sprite.polygon);
+        this.updateWorldVerts(sprite);
+    }
 
     // 如果 effect 不使用节点颜色可以放开注释不写逻辑覆盖父类此方法
     // updateColor(sprite)
@@ -74,84 +74,26 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
     // }
 
 
-    updateUVs(sprite: PolygonSprite)
+    updateUVs(sprite)
     {
-        super.updateUVs(sprite);
-        // super
-        let uv = sprite._spriteFrame.uv;
-        let uvOffset = this.uvOffset;
-        let floatsPerVert = this.floatsPerVert;
-        let verts = this._renderData.vDatas[0];
-
-        const l = uv[0], b = uv[1], t = uv[7], r = uv[6];
-        for (let i = 0; i < sprite.uvs.length; i++)
+        const uvOffset = this.uvOffset;
+        const floatsPerVert = this.floatsPerVert;
+        const verts = this._renderData.vDatas[0];
+        // @ts-ignore
+        let o_uv = sprite._spriteFrame.uv;
+        console.log(sprite);
+        let uvs = [];
+        const l = o_uv[0], b = o_uv[1], t = o_uv[7], r = o_uv[6];
+        cc.log(l, r, b, t);
+        uvs = MathUtils.calculateUVs(sprite.polygon, sprite._spriteFrame._rect.width, sprite._spriteFrame._rect.height, [l, b, r, t]);
+        cc.log(uvs);
+        let polygon = sprite.polygon;
+        for (let i = 0; i < polygon.length; i++)
         {
-            let srcOffset = i * 2;
             let dstOffset = floatsPerVert * i + uvOffset;
-            // verts[dstOffset] = uv[srcOffset];
-            // verts[dstOffset + 1] = uv[srcOffset + 1];
-            const uvs = sprite.uvs[i];
-            this._renderData.vDatas[0][dstOffset] = l + (r - l) * uvs.x
-            this._renderData.vDatas[0][dstOffset + 1] = b + (t - b) * uvs.y
+            verts[dstOffset] = uvs[i].x;
+            verts[dstOffset + 1] = uvs[i].y;
         }
-
-        // let dstOffset;
-
-        // let l = uv[0],
-        //     r = uv[2],
-        //     t = uv[5],
-        //     b = uv[1];
-        // const renderData = sprite.renderData!;
-        // //实际uv
-        // // @ts-ignore
-        // const uv = sprite.spriteFrame.uv;
-        // // 左 下 上 右 
-        // const l = uv[0], b = uv[1], t = uv[7], r = uv[6]
-        // for (let i = 0; i < sprite.uvs.length; ++i)
-        // {
-        //     const uvs = sprite.uvs[i];
-        //     renderData.data[i].u = l + (r - l) * uvs.x
-        //     renderData.data[i].v = b + (t - b) * uvs.y
-        // }
-        // renderData.uvDirty = false;
-    }
-
-    updateVerts(sprite)
-    {
-        let node = sprite.node,
-            cw = node.width, ch = node.height,
-            appx = node.anchorX * cw, appy = node.anchorY * ch,
-            l, b, r, t;
-        if (sprite.trim)
-        {
-            l = -appx;
-            b = -appy;
-            r = cw - appx;
-            t = ch - appy;
-        }
-        else
-        {
-            let frame = sprite.spriteFrame,
-                ow = frame._originalSize.width, oh = frame._originalSize.height,
-                rw = frame._rect.width, rh = frame._rect.height,
-                offset = frame._offset,
-                scaleX = cw / ow, scaleY = ch / oh;
-            let trimLeft = offset.x + (ow - rw) / 2;
-            let trimRight = offset.x - (ow - rw) / 2;
-            let trimBottom = offset.y + (oh - rh) / 2;
-            let trimTop = offset.y - (oh - rh) / 2;
-            l = trimLeft * scaleX - appx;
-            b = trimBottom * scaleY - appy;
-            r = cw + trimRight * scaleX - appx;
-            t = ch + trimTop * scaleY - appy;
-        }
-
-        let local = this._local;
-        local[0] = l;
-        local[1] = b;
-        local[2] = r;
-        local[3] = t;
-        this.updateWorldVertsWebGL(sprite);
     }
 
     updateWorldVertsWebGL(comp)
@@ -180,117 +122,79 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
 
         // render data = verts = x|y|u|v|color|x|y|u|v|color|...
         // 填充render data中4个顶点的xy部分
-        let index = 0;
         let floatsPerVert = this.floatsPerVert;
+
+        const polygon = comp.polygon;
+
         if (justTranslate)
         {
-            // 左下角为起点 逆时针顺序
-            // left bottom
-            verts[index] = vl + tx;
-            verts[index + 1] = vb + ty;
-            index += floatsPerVert;
-            // right bottom
-            verts[index] = vr + tx;
-            verts[index + 1] = vb + ty;
-            index += floatsPerVert;
-            // left top
-            verts[index] = vl + tx;
-            verts[index + 1] = vt + ty;
-            index += floatsPerVert;
-            // right top
-            verts[index] = vr + tx;
-            verts[index + 1] = vt + ty;
+            for (let i = 0; i < polygon.length; ++i)
+            {
+                verts[i * floatsPerVert] = polygon[i].x + tx;
+                verts[i * floatsPerVert + 1] = polygon[i].y + ty;
+            }
+        }
+        else
+        {
+            for (let i = 0; i < polygon.length; ++i)
+            {
+                verts[i * floatsPerVert] = a * polygon[i].x + c * polygon[i].y + tx;
+                verts[i * floatsPerVert + 1] = b * polygon[i].x + d * polygon[i].y + ty;
+            }
+        }
+    }
+
+    //每帧都会被调用
+    fillBuffers(comp, renderer)
+    {
+        if (renderer.worldMatDirty)
+        {
+            this.updateWorldVerts(comp);
+        }
+
+        let renderData = this._renderData;
+
+        // vData里包含 pos, uv, color数据, iData中包含三角形顶点索引
+        let vData = renderData.vDatas[0];
+        let iData = renderData.iDatas[0];
+
+        let buffer = this.getBuffer();
+        let offsetInfo = buffer.request(this.verticesCount, this.indicesCount);
+
+        // buffer data may be realloc, need get reference after request.
+
+        // fill vertices
+        let vertexOffset = offsetInfo.byteOffset >> 2,
+            vbuf = buffer._vData;
+        if (vData.length + vertexOffset > vbuf.length)
+        {
+            vbuf.set(vData.subarray(0, vbuf.length - vertexOffset), vertexOffset);
         } else
         {
-            // 4对xy分别乘以 [2,2]仿射矩阵，然后+平移量
-            let al = a * vl, ar = a * vr,
-                bl = b * vl, br = b * vr,
-                cb = c * vb, ct = c * vt,
-                db = d * vb, dt = d * vt;
+            vbuf.set(vData, vertexOffset);
+        }
 
-            // left bottom
-            // newx = vl * a + vb * c + tx
-            // newy = vl * b + vb * d + ty
-            verts[index] = al + cb + tx;
-            verts[index + 1] = bl + db + ty;
-            index += floatsPerVert;
-            // right bottom
-            verts[index] = ar + cb + tx;
-            verts[index + 1] = br + db + ty;
-            index += floatsPerVert;
-            // left top
-            verts[index] = al + ct + tx;
-            verts[index + 1] = bl + dt + ty;
-            index += floatsPerVert;
-            // right top
-            verts[index] = ar + ct + tx;
-            verts[index + 1] = br + dt + ty;
+        // fill indices
+        let ibuf = buffer._iData,
+            indiceOffset = offsetInfo.indiceOffset,
+            vertexId = offsetInfo.vertexOffset;             // vertexId是已经在buffer里的顶点数,也是当前顶点序号的基数
+
+        let ins = this.indicesArr;
+        for (let i = 0; i < iData.length; i++)
+        {
+            ibuf[indiceOffset++] = vertexId + ins[i];
         }
     }
 
-    // 保存顶点数据
-    updateVertexData(sprite: PolygonSprite)
+    public resetData(comp)
     {
-        //中间变量
-        const renderData = sprite.renderData;
-        if (!renderData)
-        {
-            return;
-        }
-        renderData.vertexCount = renderData.dataLength = sprite.vertices.length;
+        let points = comp.polygon;
+        if (!points || points.length < 3) return;
         // 三角形数量 = 顶点数 - 2
-        // 索引数量 = 三角形数量X3
-        renderData.indicesCount = (renderData.vertexCount - 2) * 3
-        renderData.vertDirty = false;
-        for (let i = 0; i < sprite.vertices.length; ++i)
-        {
-            const xy = sprite.vertices[i];
-            renderData.data[i].x = xy.x
-            renderData.data[i].y = xy.y
-        }
+        // 索引数量 = 三角形数量 * 3
+        this.verticesCount = points.length;
+        this.indicesCount = (this.verticesCount - 2) * 3;
+        this._renderData.clear();
+        this.initData();
     }
-
-    // fillBuffers(sprite: PolygonSprite, renderer: any)
-    // {
-    //     if (renderer.worldMatDirty)
-    //     {
-    //         this.updateWorldVerts(sprite);
-    //     }
-
-    //     let renderData = this._renderData;
-    //     let vData = renderData.vDatas[0];
-    //     let iData = renderData.iDatas[0];
-
-    //     let buffer = this.getBuffer();
-    //     let offsetInfo = buffer.request(this.verticesCount, this.indicesCount);
-    //     let vertexOffset = offsetInfo.byteOffset >> 2,
-    //         vBuf = buffer._vData;
-
-    //     // 填充顶点
-    //     for (let i = 0; i < renderData.vertexCount; ++i)
-    //     {
-    //         const vert = renderData.data[i];
-    //         // 计算世界坐标
-    //         vBuf![vertexOffset++] = a * vert.x + c * vert.y + tx;
-    //         vBuf![vertexOffset++] = b * vert.x + d * vert.y + ty;
-    //         vBuf![vertexOffset++] = vert.z;
-    //         // 填充uv
-    //         vBuf![vertexOffset++] = vert.u;
-    //         vBuf![vertexOffset++] = vert.v;
-    //         cc.Color.toArray(vBuf!, sprite.color, vertexOffset);
-    //         vertexOffset += 4;
-    //     }
-
-    //      // fill indices
-    //     let iBuf = buffer._iData,
-    //         indicesOffset = offsetInfo.indiceOffset,
-    //         vertexId = offsetInfo.vertexOffset;
-    //     for (let i = 0; i < sprite.vertices.length - 2; ++i)
-    //     {
-    //         const start = i;
-    //         iBuf![indicesOffset++] = vertexId;
-    //         iBuf![indicesOffset++] = start + 1 + vertexId;
-    //         iBuf![indicesOffset++] = start + 2 + vertexId;
-    //     }
-    // }
 }
