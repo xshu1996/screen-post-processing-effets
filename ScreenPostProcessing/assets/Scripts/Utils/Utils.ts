@@ -1,6 +1,6 @@
 export class MathUtils 
 {
-    /** 耳切法，将多边形分解为多个三角形 */
+    /** 耳切法，将多边形分解为多个三角形，获取切除凹顶点后的顶点 */
     public static splitPolygon2Triangle(points: cc.Vec2[]): number[]
     {
         if (points.length <= 3) return [0, 1, 2];
