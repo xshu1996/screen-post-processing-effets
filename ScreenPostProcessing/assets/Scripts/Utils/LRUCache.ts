@@ -1,75 +1,181 @@
-export interface LRU<K, V>
+export class DoublyListNode<V>
 {
-    get(key: K): V | undefined;
-    put(key: K, val: V): void;
+    static readonly POOL: DoublyListNode<any>[] = [];
+    static create<V>(key: string, val: V): DoublyListNode<V>
+    {
+        let dbNode = DoublyListNode.POOL.pop();
+        if (!dbNode)
+        {
+            dbNode = new DoublyListNode<V>("", null);
+        }
+        dbNode.setKey(key);
+        dbNode.setVal(val);
+        return dbNode;
+    }
+
+    key: string = "";
+    val: V = null;
+    prev: DoublyListNode<V> = null;
+    next: DoublyListNode<V> = null;
+
+    constructor(key: string, val: V)
+    {
+        this.key = key;
+        this.val = val;
+    }
+
+    setKey(key: string): void
+    {
+        this.key = key;
+    }
+
+    setVal(val: V): void
+    {
+        this.val = val;
+    }
+
+    clear(destroy: boolean = false): void
+    {
+        this.prev = null;
+        this.next = null;
+        if (destroy)
+        {
+            this.val = null;
+            this.key = "";
+            DoublyListNode.POOL.push(this);
+        }
+    }
 }
 
-export class LURCache<K, V> implements LRU<K, V>
+export interface LRU<V>
+{
+    get(key: string): V | null;
+    put(key: string, val: V): void;
+}
+
+/**
+ * Least Recently Used
+ * @author xshu
+ * 测试用例：https://leetcode-cn.com/problems/lru-cache/
+ */
+export class LURCache<V> implements LRU<V>
 {
     /** 默认容积 */
     private static DEFAULT_CAPACITY: number = 8;
-    private cache: K[]; // TODO: 改用双向链表
-    private map: Map<K, V>;
-    private capacity: number;
+    private _map: Map<string, DoublyListNode<V>>;
+    private _capacity: number;
+    /** 哨兵头节点 */
+    private _dummyHead: DoublyListNode<V>;
+    /** 哨兵尾节点 */
+    private _dummyTail: DoublyListNode<V>;
+    private _size: number;
 
     constructor(capacity: number = LURCache.DEFAULT_CAPACITY)
     {
-        this.capacity = capacity;
-        this.cache = [];
-        this.map = new Map();
+        this._capacity = capacity;
+        this._map = new Map();
+        this._size = 0;
+
+        this._dummyHead = DoublyListNode.create("DummyHead", null);
+        this._dummyTail = DoublyListNode.create("DummyTail", null);
+        this._dummyHead.next = this._dummyTail;
+        this._dummyTail.prev = this._dummyHead;        
     }
 
     public getCapacity(): number
     {
-        return this.capacity;
+        return this._capacity;
     }
 
-    public get(key: K): V | undefined
+    public get(key: string): V | null
     {
-        // throw new Error("Method node implemented");
-        if (!this.map.has(key))
+        if (!this._map.has(key))
         {
-            return;
+            return null;
         }
 
-        this.makeRecently(key);
-        return this.map.get(key);
+        let node: DoublyListNode<V> = this._map.get(key);
+        this.makeLeastRecently(node);
+        return this._map.get(key).val;
     }
 
-    public put(key: K, val: V): void
+    public put(key: string, val: V): void
     {
-        // throw new Error("Method node implemented");
-        if (this.map.has(key))
+        if (this._map.has(key))
         {
-            this.makeRecently(key);
-            this.map.set(key, val);
+            let node: DoublyListNode<V> = this._map.get(key);
+            node.setVal(val);
+            this.makeLeastRecently(node);
             return;
         }
         // 如果容量到达上限，删除最近最少使用
-        if (this.cache.length >= this.capacity)
+        if (this._size >= this._capacity)
         {
             this.removeLeastRecently();
         }
 
-        this.addRecently(key, val);
+        let newNode: DoublyListNode<V> = DoublyListNode.create(key, val);
+        this.insert2Head(newNode);
+        this._map.set(key, newNode);
+        this._size++;
     }
 
-    private makeRecently(key: K): void
+    /** 将已有的节点移动到头部 */
+    private move2Head(node: DoublyListNode<V>): void
     {
-        const index: number = this.cache.indexOf(key);
-        this.cache.splice(index, 1);
-        this.cache.push(key);
+        this.deleteNode(node);
+        this.insert2Head(node);
     }
 
+    /** 插入一个新的节点到头节点 */
+    private insert2Head(node: DoublyListNode<V>): void
+    {
+        const next: DoublyListNode<V> = this._dummyHead.next;
+        this._dummyHead.next = node;
+        node.prev = this._dummyHead;
+        node.next = next;
+        next.prev = node;
+    }
+
+    private makeLeastRecently(node: DoublyListNode<V>): void
+    {
+        this.move2Head(node);
+    }
+
+    /** 移除最近最少使用的节点 */
     private removeLeastRecently(): void
     {
-        const key = this.cache.shift();
-        this.map.delete(key);
+        let prev: DoublyListNode<V> = this._dummyTail.prev;
+        let prevKey = prev.key;
+        this.deleteNode(prev, true);
+        this._map.delete(prevKey);
+        this._size--;
     }
 
-    private addRecently(key: K, val: V): void
+    private deleteNode(node: DoublyListNode<V>, isDestroy: boolean = false): void
     {
-        this.cache.push(key);
-        this.map.set(key, val);
+        let prev: DoublyListNode<V> = node.prev;
+        let next: DoublyListNode<V> = node.next;
+
+        // 排除 dummy 节点
+        if (prev && next)
+        {
+            next.prev = prev;
+            prev.next = next;
+            node.clear(isDestroy);
+        }
+    }
+
+    public size(): number
+    {
+        return this._size;
+    }
+
+    /**
+     * @override
+     */
+    public clear(): void
+    {
+        throw "override it";
     }
 }
