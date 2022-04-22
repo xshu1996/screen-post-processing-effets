@@ -1,4 +1,4 @@
-import { MathUtils } from "../../Utils/Utils";
+import { MathUtils } from "../../Utils/MathUtils";
 import CustomSpriteAssembler2D from "./CustomSpriteAssembler2D";
 
 // 自定义顶点格式，在vfmtPosUvColor基础上，加入gfx.ATTR_UV1，去掉gfx.ATTR_COLOR
