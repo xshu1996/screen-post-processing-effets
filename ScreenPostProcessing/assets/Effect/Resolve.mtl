@@ -1,0 +1,36 @@
+{
+  "__type__": "cc.Material",
+  "_name": "Resolve",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "684cc59d-d1d2-470e-9f50-3019beb8b207"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {
+        "USE_TEXTURE": true
+      },
+      "props": {
+        "noiseTex": {
+          "__uuid__": "057760f8-5a4e-456d-b9b6-a6927aa5a36f"
+        },
+        "u_burnColOuter": {
+          "__type__": "cc.Color",
+          "r": 255,
+          "g": 219,
+          "b": 0,
+          "a": 255
+        },
+        "u_burnColInner": {
+          "__type__": "cc.Color",
+          "r": 183,
+          "g": 186,
+          "b": 35,
+          "a": 255
+        }
+      }
+    }
+  }
+}

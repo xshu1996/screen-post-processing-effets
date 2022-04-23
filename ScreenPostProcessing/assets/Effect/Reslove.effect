@@ -1,0 +1,134 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: 
+          value: white
+        noiseTex: 
+          value: white
+        alphaThreshold:
+          value: 0.5
+        u_edgetWidth:
+          value: 0.02
+        u_burnColOuter: 
+          value:
+            - 0.604
+            - 0.996
+            - 1.000
+            - 1.000
+          inspector: 
+              type: color
+        u_burnColInner:
+          value:
+            - 1.000
+            - 1.000
+            - 1.000
+            - 1.000
+          inspector: 
+              type: color
+}%
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  #endif
+
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+    pos = cc_matViewProj * pos;
+    #endif
+
+    #if USE_TEXTURE
+    v_uv0 = a_uv0;
+    #endif
+
+    v_color = a_color;
+
+    gl_Position = pos;
+  }
+}%
+
+
+CCProgram fs %{
+  precision highp float;
+
+  #include <alpha-test>
+  #include <texture>
+  #include <cc-global>
+
+  in vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+  #endif
+
+  uniform sampler2D noiseTex;
+  uniform u_constant
+  {
+    vec4 u_burnColInner;
+    vec4 u_burnColOuter;
+    float u_edgetWidth;
+  };
+
+  vec3 lerp(vec3 a, vec3 b, float t) {
+    return a + (b - a) * t;
+  }
+
+  void main () {
+    vec4 o = vec4(1, 1, 1, 1);
+
+    #if USE_TEXTURE
+      CCTexture(texture, v_uv0, o);
+    #endif
+
+    o *= v_color;
+
+    vec4 nc = texture(noiseTex, v_uv0);
+    // 阈值计算
+    float noiseThreshold = sin(cc_time.x) * 0.5 + 0.5;
+
+    float t = smoothstep(0.0, u_edgetWidth, noiseThreshold - nc.r);
+    if (t == 0.0)
+    {
+      discard;
+    }
+    if (t < 1.0)
+    {
+      vec3 burnColor = lerp(u_burnColInner.rgb, u_burnColOuter.rgb, t);
+      o.rgb = lerp(o.rgb, burnColor.rgb, t * step(0.0001, noiseThreshold));
+    }
+
+    ALPHA_TEST(o);
+
+    #if USE_BGRA
+      gl_FragColor = o.bgra;
+    #else
+      gl_FragColor = o.rgba;
+    #endif
+  }
+}%
