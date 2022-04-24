@@ -53,6 +53,12 @@ export default class PolygonSprite extends cc.Sprite
         this.setVertsDirty();
     }
 
+    protected onLoad(): void
+    {
+        // overrid the _hitTest function for the node which has this component
+        this.node["_hitTest"] = this._hitTest.bind(this);
+    }
+
     onEnable()
     {
         super.onEnable();
@@ -69,5 +75,21 @@ export default class PolygonSprite extends cc.Sprite
 
         //@ts-ignore
         this._updateColor();        // may be no need
+    }
+
+    _hitTest (cameraPt: cc.Vec2): boolean
+    {
+        // copy from CCMask.js
+        let node = this.node;
+        let testPt = new cc.Vec2();
+        
+        node['_updateWorldMatrix']();
+        // If scale is 0, it can't be hit.
+        let _mat4_temp = new cc.Mat4();
+        if (!cc.Mat4.invert(_mat4_temp, node['_worldMatrix'])) {
+            return false;
+        }
+        cc.Vec2.transformMat4(testPt, cameraPt, _mat4_temp);
+        return cc.Intersection.pointInPolygon(testPt, this.polygon);
     }
 }
