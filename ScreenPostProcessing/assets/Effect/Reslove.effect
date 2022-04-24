@@ -18,7 +18,7 @@ CCEffect %{
         alphaThreshold:
           value: 0.5
         u_edgetWidth:
-          value: 0.02
+          value: 0.05
         u_burnColOuter: 
           value:
             - 0.604
@@ -110,18 +110,12 @@ CCProgram fs %{
 
     vec4 nc = texture(noiseTex, v_uv0);
     // 阈值计算
-    float noiseThreshold = sin(cc_time.x) * 0.5 + 0.5;
-
-    float t = smoothstep(0.0, u_edgetWidth, noiseThreshold - nc.r);
-    if (t == 0.0)
-    {
-      discard;
-    }
-    if (t < 1.0)
-    {
-      vec3 burnColor = lerp(u_burnColInner.rgb, u_burnColOuter.rgb, t);
-      o.rgb = lerp(o.rgb, burnColor.rgb, t * step(0.0001, noiseThreshold));
-    }
+    float noiseThreshold = fract(cc_time.x / 5.0);
+    float t = smoothstep(0.0, u_edgetWidth, nc.r - noiseThreshold);
+    
+    vec3 burnColor = mix(u_burnColOuter.rgb, u_burnColInner.rgb, t);
+    o.rgb = mix(burnColor.rgb, o.rgb, t);
+    o.a *= step(0.0, nc.r - noiseThreshold);
 
     ALPHA_TEST(o);
 
