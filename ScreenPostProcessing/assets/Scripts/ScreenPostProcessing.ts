@@ -7,23 +7,27 @@
 const { ccclass, property } = cc._decorator;
 const OFF_SET: number = 1; // 图片扩边长度
 
-interface IRenderParam {
+interface IRenderParam
+{
     renderNode: cc.Node,
     frameSize: cc.Size, // IMPORTANT 一定要传入整数！！！！
     forceSnapShot?: boolean,
     isClear?: boolean,
 }
 
-export enum EffectType {
+export enum EffectType
+{
     BlurGauss = 0, // 高斯模糊
     PencilSketch, // 手绘风格
 }
 
 @ccclass
-export class ScreenPostProcessing extends cc.Component {
+export class ScreenPostProcessing extends cc.Component
+{
 
     private static instance: ScreenPostProcessing = null;
-    public static getInstance(): ScreenPostProcessing {
+    public static getInstance(): ScreenPostProcessing
+    {
         return this.instance;
     }
     public static effectType: EffectType = EffectType.BlurGauss;
@@ -34,21 +38,25 @@ export class ScreenPostProcessing extends cc.Component {
     @property(cc.Material)
     public p_mtlPencilSketch: cc.Material = null;
 
-    protected onLoad(): void {
+    protected onLoad(): void
+    {
         ScreenPostProcessing.instance = this;
     }
 
-    public static setEffectType(type: EffectType): void {
+    public static setEffectType(type: EffectType): void
+    {
         type = cc.misc.clampf(type, 0, Object.keys(EffectType).length / 2 - 1);
         this.effectType = type;
     }
 
-    public static getEffectType(): EffectType {
+    public static getEffectType(): EffectType
+    {
         return this.effectType;
     }
 
     // uv里面有8个值，分别是左下，右下，左上，右上4个点的x和y坐标，
-    public static getUVOffset(frame: cc.SpriteFrame) {
+    public static getUVOffset(frame: cc.SpriteFrame)
+    {
         if (!cc.isValid(frame)) return null;
 
         const ret = {
@@ -56,10 +64,11 @@ export class ScreenPostProcessing extends cc.Component {
             uvOffset: new cc.Vec4(0, 0, 0, 0),
         };
 
-        ret.uvOffset.x = frame.uv[0];
-        ret.uvOffset.y = frame.uv[1];
-        ret.uvOffset.z = frame.uv[6];
-        ret.uvOffset.w = frame.uv[7];
+        const frame_uv = frame["uv"];
+        ret.uvOffset.x = frame_uv[0];
+        ret.uvOffset.y = frame_uv[1];
+        ret.uvOffset.z = frame_uv[6];
+        ret.uvOffset.w = frame_uv[7];
 
         ret.isRotated = frame.isRotated() ? 1.0 : 0.0;
 
@@ -67,7 +76,8 @@ export class ScreenPostProcessing extends cc.Component {
     }
 
     /** 无复用截图，每次重新生成 */
-    public static getRenderTexture(renderParam: IRenderParam): cc.RenderTexture {
+    public static getRenderTexture(renderParam: IRenderParam): cc.RenderTexture
+    {
         let { renderNode, frameSize, isClear = true } = renderParam;
         const node: cc.Node = this._getShotCameraNode(frameSize);
         const camera: cc.Camera = node.getComponent(cc.Camera);
@@ -82,7 +92,7 @@ export class ScreenPostProcessing extends cc.Component {
         texture.initWithSize(frameSize.width, frameSize.height, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
         // initWithSize 已经实现了 texture.packable = false;
         texture.setPremultiplyAlpha(true);
-        camera._updateTargetTexture();
+        camera["_updateTargetTexture"]();
 
         camera.render(renderNode);
         if (isClear) camera.targetTexture = null;
@@ -91,17 +101,20 @@ export class ScreenPostProcessing extends cc.Component {
     }
 
     /** 可复用截图 */
-    public static getRenderTextureFaster(renderParam: IRenderParam): cc.RenderTexture {
+    public static getRenderTextureFaster(renderParam: IRenderParam): cc.RenderTexture
+    {
         let { renderNode, frameSize, forceSnapShot = false, isClear = false } = renderParam;
         const node: cc.Node = this._getShotCameraNode(frameSize);
         const camera: cc.Camera = node.getComponent(cc.Camera);
         // 如果只考虑实时模糊效果，可以不用每次 new 一个 cc.RenderTexture 复用 camera 的 targetTexture 可优化效率
         let texture: cc.RenderTexture;
-        if (!cc.isValid(camera.targetTexture) || forceSnapShot) {
+        if (!cc.isValid(camera.targetTexture) || forceSnapShot)
+        {
             texture = new cc.RenderTexture();
             camera.targetTexture && delete camera.targetTexture['__targetRenderNode'];
             camera.targetTexture = texture;
-        } else {
+        } else
+        {
             texture = camera.targetTexture;
         }
 
@@ -111,7 +124,8 @@ export class ScreenPostProcessing extends cc.Component {
 
         if (texture['__targetRenderNode'] !== renderNode ||
             frameSize.width !== texture.width ||
-            frameSize.height !== texture.height) {
+            frameSize.height !== texture.height)
+        {
             // 对图片进行边缘检测，图片部分边缘的梯度会比较大
             // （超出图片 uv 范围取到的纹素为黑色， 如果图片的边缘刚好偏白，那么计算出来的梯度就会很大）
             // 最后使用 shader 处理过后的图片，周边会有很明显的黑线
@@ -120,7 +134,7 @@ export class ScreenPostProcessing extends cc.Component {
             texture.initWithSize(frameSize.width, frameSize.height, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
             // initWithSize 已经实现了 texture.packable = false;
             texture.setPremultiplyAlpha(true);
-            camera._updateTargetTexture();
+            camera["_updateTargetTexture"]();
         }
         texture['__targetRenderNode'] = renderNode;
         camera.render(renderNode);
@@ -135,15 +149,18 @@ export class ScreenPostProcessing extends cc.Component {
     }
 
     // 生成截图节点
-    public static getScreenShotNode(renderNode: cc.Node, createNew: boolean, recycleTexture?): cc.Node {
+    public static getScreenShotNode(renderNode: cc.Node, createNew: boolean, recycleTexture?): cc.Node
+    {
         let texture: cc.RenderTexture;
-        if (!cc.isValid(recycleTexture)) {
+        if (!cc.isValid(recycleTexture))
+        {
             texture = this.getRenderTexture({
                 renderNode,
                 frameSize: cc.size(Math.ceil(renderNode.width), Math.ceil(renderNode.height)),
                 forceSnapShot: createNew
             });
-        } else {
+        } else
+        {
             texture = recycleTexture;
         }
 
@@ -164,9 +181,11 @@ export class ScreenPostProcessing extends cc.Component {
         return ret;
     }
 
-    private static _dealTexture(sp: cc.Sprite, texture: cc.RenderTexture): boolean {
+    private static _dealTexture(sp: cc.Sprite, texture: cc.RenderTexture): boolean
+    {
         let ret: boolean = true;
-        switch (this.effectType) {
+        switch (this.effectType)
+        {
             case EffectType.BlurGauss:
                 sp.setMaterial(0, this.instance.p_mtlBlurGauss);
                 this.instance.p_mtlBlurGauss.setProperty("u_resolution", cc.v2(texture.width, texture.height));
@@ -183,7 +202,8 @@ export class ScreenPostProcessing extends cc.Component {
     }
 
     // 利用模糊材质处理后 二次截图 减少每帧材质运算的消耗, 需要在截图节点加入到节点树后进行
-    public static reRenderNode(renderNode: cc.Node): cc.Node {
+    public static reRenderNode(renderNode: cc.Node): cc.Node
+    {
         if (!cc.isValid(renderNode)) return null;
         const renderSize = renderNode.getContentSize();
         let texture: cc.RenderTexture = this.getRenderTexture({
@@ -196,21 +216,24 @@ export class ScreenPostProcessing extends cc.Component {
         // recover texture material
         sp.setMaterial(0, cc.Material.getBuiltinMaterial('2d-sprite'));
         sp.spriteFrame.setTexture(texture);
-        sp._updateMaterial();
+        sp["_updateMaterial"]();
         renderNode.scaleY = -1;
 
         return renderNode;
     }
 
     // 翻转图片像素Y轴数据，一般直接翻转节点
-    private static _flipYImage(data: any[], width: number, height: number): Uint8Array {
+    private static _flipYImage(data: any[], width: number, height: number): Uint8Array
+    {
         let picData = new Uint8Array(width * height * 4);
         let rowBytes = width * 4;
-        for (let row = 0; row < height; ++row) {
+        for (let row = 0; row < height; ++row)
+        {
             let realRow = height - 1 - row;
             let start = realRow * width * 4;
             let reStart = row * width * 4;
-            for (let i = 0; i < rowBytes; ++i) {
+            for (let i = 0; i < rowBytes; ++i)
+            {
                 picData[reStart + i] = data[start + i];
             }
         }
@@ -219,7 +242,8 @@ export class ScreenPostProcessing extends cc.Component {
     }
 
     // 对图片扩边
-    private static _extensionImg(texture: cc.Texture2D, offset: number): cc.RenderTexture {
+    private static _extensionImg(texture: cc.Texture2D, offset: number): cc.RenderTexture
+    {
         const bWidth: number = texture.width + offset * 2;
         const bHeight: number = texture.height + offset * 2;
         const area: number = bHeight * bWidth * 4;
@@ -234,7 +258,8 @@ export class ScreenPostProcessing extends cc.Component {
     }
 
     // 对 texture 扩边
-    private static _extendTexture(data: any[], width: number, height: number): Uint8Array {
+    private static _extendTexture(data: any[], width: number, height: number): Uint8Array
+    {
         // 四方向扩边 OFF_SET = 1
         const bWidth: number = width + 2 * OFF_SET;
         const bHeight: number = height + 2 * OFF_SET;
@@ -244,11 +269,13 @@ export class ScreenPostProcessing extends cc.Component {
         picData.fill(1, 0, area);
 
         let rowBytes: number = width * 4;
-        for (let row = 0; row < height; ++row) {
+        for (let row = 0; row < height; ++row)
+        {
             let realRow = height - 1 - row;
             let start = realRow * width * 4;
             let reStart = (row + OFF_SET) * bWidth * 4;
-            for (let i = 0; i < rowBytes; ++i) {
+            for (let i = 0; i < rowBytes; ++i)
+            {
                 picData[reStart + i + 4 * OFF_SET] = data[start + i];
             }
         }
@@ -257,17 +284,20 @@ export class ScreenPostProcessing extends cc.Component {
     }
 
     // 多层弹窗界面，可以重复利用一张截图，无需多次截图消耗性能 具体判断逻辑根据项目来 预留接口
-    public static getRecycleShotTexture(): cc.Texture2D | null {
+    public static getRecycleShotTexture(): cc.Texture2D | null
+    {
         let ret = null;
         // TODO find recycle shot texture
         return ret;
     }
 
-    private static _getShotCameraNode(frameSize: cc.Size): cc.Node {
+    private static _getShotCameraNode(frameSize: cc.Size): cc.Node
+    {
         let camera: cc.Camera;
         let node: cc.Node = cc.Canvas.instance.node.getChildByName("ScreenShotInstance");
 
-        if (!cc.isValid(node)) {
+        if (!cc.isValid(node))
+        {
             node = new cc.Node("ScreenShotInstance");
             node.parent = cc.Canvas.instance.node;
             camera = node.addComponent(cc.Camera);
@@ -279,7 +309,8 @@ export class ScreenPostProcessing extends cc.Component {
 
             camera.cullingMask = 0xffffffff;
             camera.enabled = false;
-        } else {
+        } else
+        {
             camera = node.getComponent(cc.Camera);
         }
         camera.zoomRatio = cc.winSize.height / frameSize.height;
@@ -287,10 +318,13 @@ export class ScreenPostProcessing extends cc.Component {
     }
 
     // 排除忽略渲染对象及其子对象
-    private static _cullNode(node: cc.Node, cullingMask: number): void {
-        if (cc.isValid(node)) {
+    private static _cullNode(node: cc.Node, cullingMask: number): void
+    {
+        if (cc.isValid(node))
+        {
             node["_cullingMask"] = cullingMask;
-            if (node.childrenCount > 0) {
+            if (node.childrenCount > 0)
+            {
                 node.children.forEach(child => this._cullNode(child, cullingMask));
             }
         }
