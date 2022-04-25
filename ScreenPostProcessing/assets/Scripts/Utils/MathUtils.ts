@@ -70,18 +70,37 @@ export class MathUtils
         return (AB.cross(AC) >= 0 ^ AB.cross(AD) < 0) && (AB.cross(AC) >= 0 ^ AC.cross(AD) >= 0) && (BC.cross(AB) > 0 ^ BC.cross(BD) >= 0);
     }
 
-    /** 计算uv, 锚点都是中心 */
-    public static calculateUVs(points: cc.Vec2[], width: number, height: number, o_uv: number[] = [0, 1, 1, 0]): cc.Vec2[]
+    /** 计算图片上的点在合图中真实的uv */
+    public static calculateUVsInAtlas(points: cc.Vec2[], size: cc.Size, frame_uv: number[] = [0, 1, 1, 0], anchorPoint: cc.Vec2 = cc.v2(0.5, 0.5), isRotated: boolean = false): cc.Vec2[]
     {
         // 用于合图映射到真实的uv
-        let [l, b, r, t] = o_uv;
-        let uvs: cc.Vec2[] = [];
-        for (const p of points)
+        let [l, b, r, t] = frame_uv;
+        let uvs: cc.Vec2[] = points.map(p =>
         {
-            let x = cc.misc.clamp01((p.x + width / 2) / width) * (r - l) + l;
-            let y = cc.misc.clamp01(1.0 - (p.y + height / 2) / height) * (b - t) + t;
-            uvs.push(cc.v2(x, y));
+            return cc.v2(
+                cc.misc.clamp01((p.x + size.width * anchorPoint.x) / size.width) * (r - l) + l,
+                cc.misc.clamp01(1.0 - (p.y + size.height * anchorPoint.y) / size.height) * (b - t) + t
+            );
+        });
+        if (isRotated)
+        {
+            uvs.map(uv => [uv.x, uv.y] = [uv.y, 1.0 - uv.x]);
         }
+        return uvs;
+    }
+
+
+    /** 把图片上的点映射到 uv 中,范围[0~1] */
+    public static calculatedUv01(points: cc.Vec2[], size: cc.Size, anchorPoint: cc.Vec2 = cc.v2(0.5, 0.5)): cc.Vec2[]
+    {
+        const { width, height } = size;
+        let uvs: cc.Vec2[] = points.map(p => 
+        {
+            return cc.v2(
+                cc.misc.clamp01((p.x + width * anchorPoint.x) / width),
+                cc.misc.clamp01(1.0 - (p.y + height * anchorPoint.y) / height)
+            );
+        });
         return uvs;
     }
 }

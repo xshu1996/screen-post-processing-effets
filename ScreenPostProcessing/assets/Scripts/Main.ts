@@ -144,7 +144,7 @@ class Main extends cc.Component
             });
 
             ele.getComponent(cc.Sprite).spriteFrame.setTexture(texture);
-            ele.getComponent(cc.Sprite)._updateMaterial();
+            ele.getComponent(cc.Sprite)["_updateMaterial"]();
         });
 
         if (this._progressIncrement !== 0)

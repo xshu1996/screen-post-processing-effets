@@ -91,12 +91,14 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
         const floatsPerVert = this.floatsPerVert;
         const verts = this._renderData.vDatas[0];
         // @ts-ignore
-        let o_uv = sprite._spriteFrame.uv;
-        let uvs = [];
-        const l = o_uv[0], b = o_uv[1], t = o_uv[7], r = o_uv[6];
-        cc.log(l, r, b, t);
-        uvs = MathUtils.calculateUVs(sprite.polygon, sprite._spriteFrame._rect.width, sprite._spriteFrame._rect.height, [l, b, r, t]);
-        cc.log(uvs);
+        // let o_uv = sprite._spriteFrame.uv;
+        // const l = o_uv[0], b = o_uv[1], t = o_uv[7], r = o_uv[6];
+        // let uv_border = [l, b, r, t];
+        let size: cc.Size = cc.size(sprite._spriteFrame._rect.width, sprite._spriteFrame._rect.height);
+        let anchor: cc.Vec2 = sprite.node.getAnchorPoint();
+        let uvs = MathUtils.calculatedUv01(sprite.polygon, size, anchor);
+        // cc.log(size, uvs.map(v => ({x:v.x, y:v.y})));
+
         let polygon = sprite.polygon;
         for (let i = 0; i < polygon.length; i++)
         {
@@ -116,8 +118,8 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
             a = matrixm[0], b = matrixm[1], c = matrixm[4], d = matrixm[5],
             tx = matrixm[12], ty = matrixm[13];
 
-        let vl = local[0], vr = local[2],
-            vb = local[1], vt = local[3];
+        // let vl = local[0], vr = local[2],
+        //     vb = local[1], vt = local[3];
 
         /*
         m00 = 1, m01 = 0, m02 = 0, m03 = 0,
@@ -151,6 +153,18 @@ export default class PolygonSpriteAssembler extends CustomSpriteAssembler2D
                 verts[i * floatsPerVert] = a * polygon[i].x + c * polygon[i].y + tx;
                 verts[i * floatsPerVert + 1] = b * polygon[i].x + d * polygon[i].y + ty;
             }
+        }
+    }
+
+    updateWorldVertsNative(comp) 
+    {
+        let verts = this._renderData.vDatas[0];
+        let floatsPerVert = this.floatsPerVert;
+
+        let polygon = comp.polygon;
+        for(let i=0; i<polygon.length; i++) {
+            verts[i * floatsPerVert] = polygon[i].x;
+            verts[i * floatsPerVert+1] = polygon[i].y;
         }
     }
 
