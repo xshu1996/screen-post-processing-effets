@@ -5,6 +5,7 @@
  */
 
 import { ScreenPostProcessing, EffectType } from "./ScreenPostProcessing";
+import { MathUtils } from "./Utils/MathUtils";
 
 const { ccclass, property } = cc._decorator;
 
@@ -41,17 +42,22 @@ class Main extends cc.Component
     @property([cc.Button])
     public btnProgressCtl: cc.Button[] = [];
 
+    @property(cc.Graphics)
+    public graph: cc.Graphics = null;
+
     private _renderList: cc.Node[] = [];
 
     private _progressIncrement: number = 0;
 
     private _curProgress: number = 0;
-    
-    public get curProgress() : number {
+
+    public get curProgress(): number
+    {
         return this._curProgress;
     }
 
-    public set curProgress(v : number) {
+    public set curProgress(v: number)
+    {
         // -0.05 是振幅的大小，如果填0的话，当进度为0时还会出现波浪
         this._curProgress = cc.misc.clampf(v, -0.05, 1);
         if (this._curProgress === -0.05)
@@ -65,6 +71,8 @@ class Main extends cc.Component
             this._progressIncrement = -this._progressIncrement;
         }
     }
+
+    private _graPoints: cc.Vec2[] = [];
 
     protected onLoad(): void
     {
@@ -122,11 +130,22 @@ class Main extends cc.Component
             }, this);
         });
 
-        this.btnProgressCtl.forEach((btn, idx) => {
-            btn.node.on("click", () => {
+        this.btnProgressCtl.forEach((btn, idx) =>
+        {
+            btn.node.on("click", () =>
+            {
                 this._progressIncrement = (idx - 1) * this.proSpeed;
             }, this);
         });
+
+        cc.Canvas.instance.node.on(cc.Node.EventType.TOUCH_MOVE, (e: cc.Touch) =>
+        {
+            let worldPos = e.getLocation();
+            let nodePos = this.graph.node.convertToNodeSpaceAR(worldPos);
+            this._graPoints.push(nodePos);
+            this._graPoints = MathUtils.simplifyLightBar(this._graPoints, 5);
+            this._drawTrack(this.graph, this._graPoints);
+        }, this);
     }
 
     private _refreshUIVisible(): void
@@ -159,6 +178,22 @@ class Main extends cc.Component
         if (!cc.isValid(this.p_proText)) return;
         const WAVE_MTL: cc.Material = this.p_proText.getMaterial(0);
         WAVE_MTL.setProperty("offset", increment);
+    }
+
+    private _drawTrack(g: cc.Graphics, points: cc.Vec2[]): void
+    {
+        if (!cc.isValid(g) || points.length < 2)
+        {
+            return;
+        }
+
+        g.clear();
+        g.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; ++i)
+        {
+            g.lineTo(points[i].x, points[i].y);
+        }
+        g.stroke();
     }
 }
 export = Main;
