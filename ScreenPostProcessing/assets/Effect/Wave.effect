@@ -17,6 +17,14 @@ CCEffect %{
         angularVelocity: { value: 10.0 }
         frequency: { value: 10.0 }
         offset: { value: 0.5 }
+        u_alpha: { value: 0.1 }
+        uRotated: { value: 0.0 }
+        uUVOffset:
+          value:
+            - 0.0 
+            - 1.0
+            - 1.0
+            - 0.0
 }%
 
 
@@ -69,12 +77,33 @@ CCProgram fs %{
   uniform sampler2D texture;
   #endif
 
-  uniform params {
+  uniform u_constant {
+    vec4 uUVOffset;
     float amplitude;        // 振幅
     float angularVelocity;  // 角速度
     float frequency;        // 频率
     float offset;           // 偏距
+    float u_alpha;          // 进度条未完成区域透明度
+    float uRotated;
   };
+
+  // 把图集内的图片的 uv 坐标换算映射到 0.0 ～ 1.0 或者反之
+  float linear(float x0, float x1, float y0, float y1, float inputX) 
+  {
+     return (y1 - y0) * (inputX - x0) / (x1 - x0) + y0;
+  }
+
+  // 图片是否旋转
+  vec2 rotateVec (vec2 uv) 
+  {
+      if (uRotated > 0.5)
+      {
+          float tmp = uv.x;
+          uv.x = uv.y;
+          uv.y = 1.0 - tmp;
+      }
+      return uv;
+  }
 
   void main () {
     vec4 o = vec4(1, 1, 1, 1);
@@ -86,16 +115,14 @@ CCProgram fs %{
     o *= v_color;
 
     float initiaPhase = frequency * cc_time.x;
-
+    // 将合图里面的 uv 映射到 [0~1]
+    float u = linear(uUVOffset.x, uUVOffset.z, 0.0, 1.0, v_uv0.x);
+    float v = linear(uUVOffset.w, uUVOffset.y, 0.0, 1.0, v_uv0.y);
     // 代入正弦曲线公式计算 y 值
     // y = Asin(ωx ± φt) + k
-    float y = amplitude * sin(angularVelocity * v_uv0.x + initiaPhase) + 1.0 - offset;
-
+    float y = amplitude * sin(angularVelocity * u + initiaPhase) + 1.0 - offset;
     // 进度其余的部分 降低透明度 区别显示区域
-    if (v_uv0.y < y)
-    {
-      o.a = 0.1;
-    }
+    o.a *= clamp(step(y, v) + u_alpha, 0.0, 1.0);
 
     ALPHA_TEST(o);
 
