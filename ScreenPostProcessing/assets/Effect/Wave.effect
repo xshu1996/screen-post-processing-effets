@@ -22,9 +22,9 @@ CCEffect %{
         uUVOffset:
           value:
             - 0.0 
-            - 1.0
-            - 1.0
             - 0.0
+            - 1.0
+            - 1.0
 }%
 
 
@@ -117,7 +117,7 @@ CCProgram fs %{
     float initiaPhase = frequency * cc_time.x;
     // 将合图里面的 uv 映射到 [0~1]
     float u = linear(uUVOffset.x, uUVOffset.z, 0.0, 1.0, v_uv0.x);
-    float v = linear(uUVOffset.w, uUVOffset.y, 0.0, 1.0, v_uv0.y);
+    float v = linear(uUVOffset.y, uUVOffset.w, 0.0, 1.0, v_uv0.y);
     // 代入正弦曲线公式计算 y 值
     // y = Asin(ωx ± φt) + k
     float y = amplitude * sin(angularVelocity * u + initiaPhase) + 1.0 - offset;

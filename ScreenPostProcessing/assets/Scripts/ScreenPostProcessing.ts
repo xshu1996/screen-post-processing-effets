@@ -65,10 +65,10 @@ export class ScreenPostProcessing extends cc.Component
         };
 
         const frame_uv = frame["uv"];
-        ret.uvOffset.x = frame_uv[0];
-        ret.uvOffset.y = frame_uv[1];
-        ret.uvOffset.z = frame_uv[6];
-        ret.uvOffset.w = frame_uv[7];
+        ret.uvOffset.x = frame_uv[0]; // xMin
+        ret.uvOffset.y = frame_uv[7]; // yMin
+        ret.uvOffset.z = frame_uv[6]; // xMax
+        ret.uvOffset.w = frame_uv[1]; // yMax
 
         ret.isRotated = frame.isRotated() ? 1.0 : 0.0;
 

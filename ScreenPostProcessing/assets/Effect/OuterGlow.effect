@@ -92,12 +92,23 @@ CCProgram fs %{
   }
 
   // 图片是否旋转
-  vec2 rotateVec (vec2 uv) 
+  vec2 rotateVec(vec2 uv) 
   {
       if (uRotated > 0.5)
       {
           float tmp = uv.x;
           uv.x = uv.y;
+          uv.y = 1.0 - tmp;
+      }
+      return uv;
+  }
+
+  vec2 reRotateVec(vec2 uv)
+  {
+    if (uRotated > 0.5)
+      {
+          float tmp = 1.0 - uv.x;
+          uv.x = 1.0 - uv.y;
           uv.y = 1.0 - tmp;
       }
       return uv;
@@ -116,11 +127,11 @@ CCProgram fs %{
 	            vec2 uv2 = vec2(ix, iy);
 	            uv2 /= float(samplers);
 	            uv2 *= Size * 0.1;
-	            
+	            // cocos 纹理勾选 packable 的话，需要把预乘（premultiply alpha）也勾选上
               // 0 - 1 范围内的真实 uv
               vec2 r_uv = vec2(
                 linear(uUVOffset.x, uUVOffset.z, 0.0, 1.0, UV.x),
-                linear(uUVOffset.w, uUVOffset.y, 0.0, 1.0, UV.y)
+                linear(uUVOffset.y, uUVOffset.w, 0.0, 1.0, UV.y)
               );
               r_uv = rotateVec(r_uv);
 
@@ -129,9 +140,9 @@ CCProgram fs %{
               // recover 还原到图片的 uv 范围内
               uv2 = vec2(
                 linear(0.0, 1.0, uUVOffset.x, uUVOffset.z, uv2.x),
-                linear(0.0, 1.0, uUVOffset.w, uUVOffset.y, uv2.y)
+                linear(0.0, 1.0, uUVOffset.y, uUVOffset.w, uv2.y)
               );
-              uv2 = rotateVec(uv2);
+              uv2 = reRotateVec(uv2);
 
 	            ret += texture2D(Tex, uv2);
 	            count++;

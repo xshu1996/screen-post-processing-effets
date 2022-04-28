@@ -22,6 +22,9 @@ class Main extends cc.Component
     @property(cc.Toggle)
     public p_togRealTimeRendering: cc.Toggle = null;
 
+    @property(cc.Toggle)
+    public p_togGraphic: cc.Toggle = null;
+
     @property(cc.Slider)
     public p_sliderModifyParam: cc.Slider = null;
 
@@ -79,6 +82,7 @@ class Main extends cc.Component
     {
         this.p_btnShowPage.node.zIndex = INTERACTION_UI_Z_INDEX;
         this.p_togRealTimeRendering.node.zIndex = INTERACTION_UI_Z_INDEX;
+        this.p_togGraphic.node.zIndex = INTERACTION_UI_Z_INDEX;
         this.p_sliderModifyParam.node.zIndex = INTERACTION_UI_Z_INDEX;
         this.p_tgSelectEffect.node.zIndex = INTERACTION_UI_Z_INDEX;
 
@@ -141,6 +145,10 @@ class Main extends cc.Component
 
         cc.Canvas.instance.node.on(cc.Node.EventType.TOUCH_MOVE, (e: cc.Touch) =>
         {
+            if (!this.p_togGraphic.isChecked)
+            {
+                return;
+            }
             let worldPos = e.getLocation();
             let nodePos = this.graph.node.convertToNodeSpaceAR(worldPos);
             this._graPoints.push(nodePos);
@@ -187,6 +195,11 @@ class Main extends cc.Component
     private _drawTrack(g: cc.Graphics, points: cc.Vec2[]): void
     {
         if (!cc.isValid(g) || points.length < 2)
+        {
+            return;
+        }
+
+        if (!this.p_togGraphic.isChecked)
         {
             return;
         }
