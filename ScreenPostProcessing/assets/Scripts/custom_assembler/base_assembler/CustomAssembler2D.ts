@@ -12,8 +12,13 @@ export default class CustomAssembler2D extends cc.Assembler
     // 每个顶点属性由5个32位数据组成
     // 顶点属性声明:
     // var vfmtPosUvColor = new gfx.VertexFormat([
+    // 节点的世界坐标，占2个float32
     //     { name: gfx.ATTR_POSITION, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
+    // 节点的纹理uv坐标，占2个float32
+    // 如果节点使用了独立的纹理（未合图），这里的uv值通常是0或1
+    // 合图后的纹理，这里的uv对应其在图集里的相对位置，取值范围在[0,1)内
     //     { name: gfx.ATTR_UV0, type: gfx.ATTR_TYPE_FLOAT32, num: 2 },
+    // 节点颜色值，cc.Sprite组件上可以设置。占4个uint8 = 1个float32
     //     { name: gfx.ATTR_COLOR, type: gfx.ATTR_TYPE_UINT8, num: 4, normalize: true },       // 4个uint8
     // ]);
     // 顶点属性数据排列，每一格是32位 (float32/uint32)
