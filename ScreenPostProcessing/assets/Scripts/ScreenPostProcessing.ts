@@ -38,6 +38,9 @@ export class ScreenPostProcessing extends cc.Component
     @property(cc.Material)
     public p_mtlPencilSketch: cc.Material = null;
 
+    private static _canvas: HTMLCanvasElement = null;
+
+
     protected onLoad(): void
     {
         ScreenPostProcessing.instance = this;
@@ -220,6 +223,68 @@ export class ScreenPostProcessing extends cc.Component
         renderNode.scaleY = -1;
 
         return renderNode;
+    }
+
+    public static saveImgByRT(rt: cc.RenderTexture, fileName: string = "image.png")
+    {
+        let width = rt.width;
+        let height = rt.height;
+        if (CC_JSB)
+        {
+            let data = rt.readPixels();
+            let filePath = jsb.fileUtils.getWritablePath() + 'Image.png';
+            // @ts-ignore
+            jsb.saveImageData(data, width, height, filePath);
+        }
+        else if (!cc.sys.isNative)
+        {
+            if (!this._canvas)
+            {
+                this._canvas = document.createElement('canvas');
+
+                this._canvas.width = width;
+                this._canvas.height = height;
+            }
+            else
+            {
+                this.clearCanvas();
+            }
+
+            let ctx = this._canvas.getContext('2d');
+            let data = rt.readPixels();
+            // write the render data
+            let rowBytes = width * 4;
+            for (let row = 0; row < height; row++)
+            {
+                let s_row = height - 1 - row;
+                let imageData = ctx.createImageData(width, 1);
+                let start = s_row * width * 4;
+                for (let i = 0; i < rowBytes; i++)
+                {
+                    imageData.data[i] = data[start + i];
+                }
+
+                ctx.putImageData(imageData, 0, row);
+            }
+        }
+        let base64 = this._canvas.toDataURL("image/jpeg"); // 压缩语句
+        const tmp = document.createElement("a");
+        tmp.style.display = 'none';
+        tmp.href = base64;
+        tmp.download = fileName;
+        document.body.appendChild(tmp);
+        tmp.click();
+        document.body.removeChild(tmp);
+
+        // const href = base64.replace(/^data:image[^;]*/, "data:image/octet-stream");
+        // document.location.href = href;
+        return base64;
+    }
+
+    public static clearCanvas(): void
+    {
+        let ctx = this._canvas.getContext('2d');
+        ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
     }
 
     // 翻转图片像素Y轴数据，一般直接翻转节点
