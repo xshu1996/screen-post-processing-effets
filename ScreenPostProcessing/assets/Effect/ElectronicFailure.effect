@@ -65,9 +65,10 @@ CCProgram fs %{
   uniform sampler2D texture;
   #endif
 
-  float hash21 (float x, float y) 
+  float randomNoise2(vec2 seed)
   {
-    return fract(sin(dot(vec2(x, y), vec2(12.9898, 78.233))) * 43758.5453);
+    float speed = 10.0;
+    return fract(sin(dot(seed * floor(cc_time.x * speed), vec2(17.13, 3.71))) * 43758.5453123);
   }
 
   float randomNoise(float x, float y)
@@ -85,19 +86,36 @@ CCProgram fs %{
 
     o *= v_color;
 
-    float splitAmount = (1.0 + sin(time * 6.0)) * 0.5;
-    splitAmount *= 1.0 + sin(time * 16.0) * 0.5;
-    splitAmount *= 1.0 + sin(time * 19.0) * 0.5;
-    splitAmount *= 1.0 + sin(time * 27.0) * 0.5;
-    splitAmount = pow(splitAmount, 4.9);
-    splitAmount *= (0.05 * 13.9);
+    // float splitAmount = (1.0 + sin(time * 6.0)) * 0.5;
+    // splitAmount *= 1.0 + sin(time * 16.0) * 0.5;
+    // splitAmount *= 1.0 + sin(time * 19.0) * 0.5;
+    // splitAmount *= 1.0 + sin(time * 27.0) * 0.5;
+    // splitAmount = pow(splitAmount, 4.9);
+    // splitAmount *= (0.05 * 13.9);
 
-    vec2 offset = vec2(splitAmount);
+    // vec2 offset = vec2(splitAmount);
+    // vec4 driftColor0 = texture(texture, v_uv0 + offset);
+    // vec4 driftColor1 = texture(texture, v_uv0 - offset);
+
+    // o = vec4(driftColor0.r, o.g, driftColor1.b, o.a);
+    // o *= (1.0 - splitAmount * 0.5);
+
+    float block = randomNoise2(floor(v_uv0 * 8.0));
+
+    float displaceNoise = pow(block, 8.0) * pow(block, 3.0);
+    float splitRGBNoise = pow(randomNoise2(vec2(7.2341, 1.0)), 17.0);
+    float offsetX = displaceNoise - splitRGBNoise * 1.0; 
+    float offsetY = displaceNoise - splitRGBNoise * 1.0;
+
+    float noiseX = 0.05 * randomNoise2(vec2(13.0, 1.0));
+    float noiseY = 0.05 * randomNoise2(vec2(7.0, 1.0));
+    vec2 offset = vec2(offsetX * noiseX, offsetY * noiseY);
+
     vec4 driftColor0 = texture(texture, v_uv0 + offset);
     vec4 driftColor1 = texture(texture, v_uv0 - offset);
 
-    o = vec4(driftColor0.r, o.g, driftColor1.b, o.a);
-    o *= (1.0 - splitAmount * 0.5);
+    o = vec4(driftColor0.r, o.g, driftColor1.b, (o.a + driftColor0.a + driftColor1.a));
+    o *= v_color;
 
     ALPHA_TEST(o);
 
