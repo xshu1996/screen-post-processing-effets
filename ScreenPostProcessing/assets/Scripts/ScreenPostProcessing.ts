@@ -232,7 +232,7 @@ export class ScreenPostProcessing extends cc.Component
         if (CC_JSB)
         {
             let data = rt.readPixels();
-            let filePath = jsb.fileUtils.getWritablePath() + 'Image.png';
+            let filePath = jsb.fileUtils.getWritablePath() + fileName;
             // @ts-ignore
             jsb.saveImageData(data, width, height, filePath);
         }
@@ -283,6 +283,10 @@ export class ScreenPostProcessing extends cc.Component
 
     public static clearCanvas(): void
     {
+        if (!this._canvas)
+        {
+            return;
+        }
         let ctx = this._canvas.getContext('2d');
         ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
     }
