@@ -227,38 +227,64 @@ export class ScreenPostProcessing extends cc.Component
 
     public static saveImgByRT(rt: cc.RenderTexture, fileName: string = "image.png")
     {
-        let width = rt.width;
-        let height = rt.height;
+        const rawWidth: number = rt.width;
+        const rawHeight: number = rt.height;
+
+        // 如果超过最大尺寸，则截取中心安全区域
+        const MAX_WIDTH: number = 2048;
+        const MAX_HEIGHT: number = 2048;
+
+        // 计算安全区域
+        const safeWidth: number = cc.misc.clampf(rawWidth, 0, MAX_WIDTH);
+        const safeHeight: number = cc.misc.clampf(rawHeight, 0, MAX_HEIGHT);
+
+        const offsetW: number = Math.max(0, rawWidth - MAX_WIDTH);
+        const offsetH: number = Math.max(0, rawHeight - MAX_HEIGHT);
+        const halfOffsetW: number = Math.ceil(offsetW * 0.5);
+        const halfOffsetH: number = Math.ceil(offsetH * 0.5);
+
+        const data: Uint8Array = rt.readPixels();
+
         if (CC_JSB)
         {
-            let data = rt.readPixels();
             let filePath = jsb.fileUtils.getWritablePath() + fileName;
+            let imgData = new Uint8Array(safeWidth * safeHeight * 4);
+            // write the render data
+            let rowBytes = (rawWidth - offsetW) * 4;
+            for (let row = 0; row < safeHeight; row++)
+            {
+                let s_row = safeHeight - 1 - row + halfOffsetH;
+                let start = s_row * rawWidth * 4 + halfOffsetW * 4;
+                for (let i = 0; i < rowBytes; i++)
+                {
+                    imgData[row * rawWidth * 4 + i] = data[start + i];
+                }
+            }
             // @ts-ignore
-            jsb.saveImageData(data, width, height, filePath);
+            jsb.saveImageData(imgData, rawWidth, rawHeight, filePath);
         }
-        else if (!cc.sys.isNative)
+        else if (!CC_RUNTIME)
         {
             if (!this._canvas)
             {
                 this._canvas = document.createElement('canvas');
-
-                this._canvas.width = width;
-                this._canvas.height = height;
             }
             else
             {
                 this.clearCanvas();
             }
 
+            this._canvas.width = safeWidth;
+            this._canvas.height = safeHeight;
+
             let ctx = this._canvas.getContext('2d');
-            let data = rt.readPixels();
             // write the render data
-            let rowBytes = width * 4;
-            for (let row = 0; row < height; row++)
+            let rowBytes = (rawWidth - offsetW) * 4;
+            for (let row = 0; row < safeHeight; row++)
             {
-                let s_row = height - 1 - row;
-                let imageData = ctx.createImageData(width, 1);
-                let start = s_row * width * 4;
+                let s_row = safeHeight - 1 - row + halfOffsetH;
+                let imageData = ctx.createImageData(rawWidth - offsetW, 1);
+                let start = s_row * rawWidth * 4 + halfOffsetW * 4;
                 for (let i = 0; i < rowBytes; i++)
                 {
                     imageData.data[i] = data[start + i];
@@ -267,7 +293,8 @@ export class ScreenPostProcessing extends cc.Component
                 ctx.putImageData(imageData, 0, row);
             }
         }
-        let base64 = this._canvas.toDataURL("image/jpeg"); // 压缩语句
+
+        let base64 = this._canvas.toDataURL("image/png"); // 压缩语句
         const tmp = document.createElement("a");
         tmp.style.display = 'none';
         tmp.href = base64;
