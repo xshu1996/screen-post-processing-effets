@@ -84,8 +84,15 @@ CCProgram fs %{
       CCTexture(texture, v_uv0, o);
     #endif
 
-    o *= v_color;
+    // normal RGB Split Glitch
+    // float intensity = 8.0;
+    // float splitAmount = intensity * randomNoise(time, 2.0);
+    // vec4 ColorR = texture(texture, vec2(v_uv0.x + splitAmount, v_uv0.y));
+    // vec4 ColorG = texture(texture, v_uv0);
+    // vec4 ColorB = texture(texture, vec2(v_uv0.x - splitAmount, v_uv0.y));
+    // o = vec4(ColorR.r, ColorG.g, ColorB.b, ColorR.a + ColorB.a + ColorG.a);
 
+    // better RGB Split Glitch
     // float splitAmount = (1.0 + sin(time * 6.0)) * 0.5;
     // splitAmount *= 1.0 + sin(time * 16.0) * 0.5;
     // splitAmount *= 1.0 + sin(time * 19.0) * 0.5;
@@ -100,8 +107,8 @@ CCProgram fs %{
     // o = vec4(driftColor0.r, o.g, driftColor1.b, o.a);
     // o *= (1.0 - splitAmount * 0.5);
 
+    // 错位图块故障（Image Block Glitch）
     float block = randomNoise2(floor(v_uv0 * 8.0));
-
     float displaceNoise = pow(block, 8.0) * pow(block, 3.0);
     float splitRGBNoise = pow(randomNoise2(vec2(7.2341, 1.0)), 17.0);
     float offsetX = displaceNoise - splitRGBNoise * 1.0; 
@@ -114,7 +121,8 @@ CCProgram fs %{
     vec4 driftColor0 = texture(texture, v_uv0 + offset);
     vec4 driftColor1 = texture(texture, v_uv0 - offset);
 
-    o = vec4(driftColor0.r, o.g, driftColor1.b, (o.a + driftColor0.a + driftColor1.a));
+    o = vec4(driftColor0.r, o.g, driftColor1.b, o.a + driftColor0.a + driftColor1.a);
+
     o *= v_color;
 
     ALPHA_TEST(o);

@@ -6103,8 +6103,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -127.028,
-        85.727,
+        -130.77,
+        156.824,
         0,
         0,
         0,
@@ -6136,7 +6136,7 @@
       "__id__": 123
     },
     "_children": [],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 125
@@ -6146,8 +6146,8 @@
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
-      "r": 255,
-      "g": 255,
+      "r": 148,
+      "g": 0,
       "b": 255,
       "a": 255
     },
@@ -6165,8 +6165,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        -8.823,
-        -154.405,
+        -1.339,
+        -176.856,
         0,
         0,
         0,
