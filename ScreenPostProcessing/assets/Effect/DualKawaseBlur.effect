@@ -1,0 +1,175 @@
+CCEffect %{
+  techniques:
+  - name: Down
+    passes:
+    - name: Down
+      vert: vs:Down
+      frag: fs:Down
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties: &prop
+        texture: { value: white }
+        resolution: { value: [750, 1334] }
+        offset: { value: 1, editor: { range: [0, 100] }}
+        alphaThreshold: { value: 0.5 }
+  - name: Up
+    passes:
+    - name: Up
+      vert: vs:Up
+      frag: fs:Up
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties: *prop
+}%
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 a_uv0;
+
+  out vec2 v_uv0;
+  out vec4 v_uv1;
+  out vec4 v_uv2;
+  out vec4 v_uv3;
+  out vec4 v_uv4;
+
+  #endif
+
+  uniform Properties {
+    vec2 resolution;
+    float offset;
+  };
+
+  vec4 Down () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+    pos = cc_matViewProj * pos;
+    #endif
+
+    #if USE_TEXTURE
+    vec2 uv = a_uv0;
+    vec2 texelSize = 0.5 / resolution;
+    v_uv0 = uv;
+    v_uv1.xy = uv - texelSize * vec2(offset); // top right
+    v_uv1.zw = uv + texelSize * vec2(offset); // bottom left
+    v_uv2.xy = uv - vec2(texelSize.x, -texelSize.y) * vec2(offset); // top right
+    v_uv2.zw = uv + vec2(texelSize.x, -texelSize.y) * vec2(offset); // bottom left
+    #endif
+
+    v_color = a_color;
+
+    return pos;
+  }
+  
+  vec4 Up () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+    pos = cc_matViewProj * pos;
+    #endif
+
+    #if USE_TEXTURE
+    vec2 uv = a_uv0;
+    vec2 texelSize = 0.5 / resolution;
+    v_uv0 = uv;
+    v_uv1.xy = uv + vec2(-texelSize.x * 2., 0) * offset;
+    v_uv1.zw = uv + vec2(-texelSize.x, texelSize.y) * offset;
+    v_uv2.xy = uv + vec2(0, texelSize.y * 2.) * offset;
+    v_uv2.zw = uv + texelSize * offset;
+    v_uv3.xy = uv + vec2(texelSize.x * 2., 0) * offset;
+    v_uv3.zw = uv + vec2(texelSize.x, -texelSize.y) * offset;
+    v_uv4.xy = uv + vec2(0, -texelSize.y * 2.) * offset;
+    v_uv4.zw = uv - texelSize * offset;
+    #endif
+
+    v_color = a_color;
+
+    return pos;
+  }
+}%
+
+CCProgram fs %{
+  precision highp float;
+  
+  #include <alpha-test>
+  #include <texture>
+  #include <output>
+
+  in vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 v_uv0;
+  in vec4 v_uv1;
+  in vec4 v_uv2;
+  in vec4 v_uv3;
+  in vec4 v_uv4;
+  uniform sampler2D texture;
+  #endif
+
+  uniform Properties {
+    vec2 resolution;
+    float offset;
+  };
+
+  vec4 Down () {
+    vec4 sum = vec4(1);
+
+    #if USE_TEXTURE
+      sum = texture2D(texture, v_uv0) * 4.;
+      sum += texture2D(texture, v_uv1.xy);
+      sum += texture2D(texture, v_uv1.zw);
+      sum += texture2D(texture, v_uv2.xy);
+      sum += texture2D(texture, v_uv2.zw);
+      sum *= 0.125;
+    #endif
+
+    sum *= v_color;
+
+    ALPHA_TEST(sum);
+
+    return CCFragOutput(sum);
+  }
+
+  vec4 Up () {
+    vec4 sum = vec4(1);
+
+    #if USE_TEXTURE
+      CCTexture(texture, v_uv1.xy, sum);
+      sum += texture2D(texture, v_uv1.zw) * 2.;
+      sum += texture2D(texture, v_uv2.xy);
+      sum += texture2D(texture, v_uv2.zw) * 2.;
+      sum += texture2D(texture, v_uv3.xy);
+      sum += texture2D(texture, v_uv3.zw) * 2.;
+      sum += texture2D(texture, v_uv4.xy);
+      sum += texture2D(texture, v_uv4.zw) * 2.;
+      sum *= 0.0833;
+    #endif
+
+    sum *= v_color;
+
+    ALPHA_TEST(sum);
+
+    return CCFragOutput(sum);
+  }
+
+}%
