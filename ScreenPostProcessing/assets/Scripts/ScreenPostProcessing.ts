@@ -17,8 +17,9 @@ interface IRenderParam
 
 export enum EffectType
 {
-    BlurGauss = 0, // 高斯模糊
-    PencilSketch, // 手绘风格
+    BlurGauss = 0,  // 高斯模糊
+    PencilSketch,   // 手绘风格
+    Glitch,         // 电子故障
 }
 
 @ccclass
@@ -37,6 +38,9 @@ export class ScreenPostProcessing extends cc.Component
 
     @property(cc.Material)
     public p_mtlPencilSketch: cc.Material = null;
+
+    @property(cc.Material)
+    public p_mtlGlitch: cc.Material = null;
 
     private static _canvas: HTMLCanvasElement = null;
 
@@ -195,6 +199,9 @@ export class ScreenPostProcessing extends cc.Component
                 break;
             case EffectType.PencilSketch:
                 sp.setMaterial(0, this.instance.p_mtlPencilSketch);
+                break;
+            case EffectType.Glitch:
+                sp.setMaterial(0, this.instance.p_mtlGlitch);
                 break;
             default:
                 ret = false;
