@@ -1,12 +1,12 @@
-export class DoublyListNode<V>
+export class DoublyListNode<T>
 {
     static readonly POOL: DoublyListNode<any>[] = [];
-    static create<V>(key: string, val: V): DoublyListNode<V>
+    static create<T>(key: string, val: T): DoublyListNode<T>
     {
         let dbNode = DoublyListNode.POOL.pop();
         if (!dbNode)
         {
-            dbNode = new DoublyListNode<V>("", null);
+            dbNode = new DoublyListNode<T>("", null);
         }
         dbNode.setKey(key);
         dbNode.setVal(val);
@@ -14,27 +14,27 @@ export class DoublyListNode<V>
     }
 
     key: string = "";
-    val: V = null;
-    prev: DoublyListNode<V> = null;
-    next: DoublyListNode<V> = null;
+    val: T = null;
+    prev: DoublyListNode<T> = null;
+    next: DoublyListNode<T> = null;
 
-    constructor(key: string, val: V)
+    constructor(key: string, val: T)
     {
         this.key = key;
         this.val = val;
     }
 
-    setKey(key: string): void
+    public setKey(key: string): void
     {
         this.key = key;
     }
 
-    setVal(val: V): void
+    public setVal(val: T): void
     {
         this.val = val;
     }
 
-    clear(destroy: boolean = false): void
+    public clear(destroy: boolean = false): void
     {
         this.prev = null;
         this.next = null;
@@ -47,30 +47,31 @@ export class DoublyListNode<V>
     }
 }
 
-export interface LRU<V>
+export interface LRU<T>
 {
-    get(key: string): V | null;
-    put(key: string, val: V): void;
+    get(key: string): T | null;
+    put(key: string, val: T): void;
 }
 
 /**
- * Least Recently Used
+ * @class LURCache
+ * LRU 是 Least Recently Used 的缩写，即最近最少使用，选择最近最久未使用的页面予以淘汰。
  * @author xshu
  * 测试用例：https://leetcode-cn.com/problems/lru-cache/
  */
-export class LURCache<V> implements LRU<V>
+export class LRUCache<T> implements LRU<T>
 {
     /** 默认容积 */
     private static DEFAULT_CAPACITY: number = 8;
-    private _map: Map<string, DoublyListNode<V>>;
+    private _map: Map<string, DoublyListNode<T>>;
     private _capacity: number;
     /** 哨兵头节点 */
-    private _dummyHead: DoublyListNode<V>;
+    private _dummyHead: DoublyListNode<T>;
     /** 哨兵尾节点 */
-    private _dummyTail: DoublyListNode<V>;
+    private _dummyTail: DoublyListNode<T>;
     private _size: number;
 
-    constructor(capacity: number = LURCache.DEFAULT_CAPACITY)
+    constructor(capacity: number = LRUCache.DEFAULT_CAPACITY)
     {
         this._capacity = capacity;
         this._map = new Map();
@@ -87,23 +88,23 @@ export class LURCache<V> implements LRU<V>
         return this._capacity;
     }
 
-    public get(key: string): V | null
+    public get(key: string): T | null
     {
         if (!this._map.has(key))
         {
             return null;
         }
 
-        let node: DoublyListNode<V> = this._map.get(key);
+        let node: DoublyListNode<T> = this._map.get(key);
         this.makeLeastRecently(node);
         return this._map.get(key).val;
     }
 
-    public put(key: string, val: V): void
+    public put(key: string, val: T): void
     {
         if (this._map.has(key))
         {
-            let node: DoublyListNode<V> = this._map.get(key);
+            let node: DoublyListNode<T> = this._map.get(key);
             node.setVal(val);
             this.makeLeastRecently(node);
             return;
@@ -114,30 +115,30 @@ export class LURCache<V> implements LRU<V>
             this.removeLeastRecently();
         }
 
-        let newNode: DoublyListNode<V> = DoublyListNode.create(key, val);
+        let newNode: DoublyListNode<T> = DoublyListNode.create(key, val);
         this.insert2Head(newNode);
         this._map.set(key, newNode);
         this._size++;
     }
 
     /** 将已有的节点移动到头部 */
-    private move2Head(node: DoublyListNode<V>): void
+    private move2Head(node: DoublyListNode<T>): void
     {
         this.deleteNode(node);
         this.insert2Head(node);
     }
 
     /** 插入一个新的节点到头节点 */
-    private insert2Head(node: DoublyListNode<V>): void
+    private insert2Head(node: DoublyListNode<T>): void
     {
-        const next: DoublyListNode<V> = this._dummyHead.next;
+        const next: DoublyListNode<T> = this._dummyHead.next;
         this._dummyHead.next = node;
         node.prev = this._dummyHead;
         node.next = next;
         next.prev = node;
     }
 
-    private makeLeastRecently(node: DoublyListNode<V>): void
+    private makeLeastRecently(node: DoublyListNode<T>): void
     {
         this.move2Head(node);
     }
@@ -145,17 +146,17 @@ export class LURCache<V> implements LRU<V>
     /** 移除最近最少使用的节点 */
     private removeLeastRecently(): void
     {
-        let prev: DoublyListNode<V> = this._dummyTail.prev;
+        let prev: DoublyListNode<T> = this._dummyTail.prev;
         let prevKey = prev.key;
         this.deleteNode(prev, true);
         this._map.delete(prevKey);
         this._size--;
     }
 
-    private deleteNode(node: DoublyListNode<V>, isDestroy: boolean = false): void
+    private deleteNode(node: DoublyListNode<T>, isDestroy: boolean = false): void
     {
-        let prev: DoublyListNode<V> = node.prev;
-        let next: DoublyListNode<V> = node.next;
+        let prev: DoublyListNode<T> = node.prev;
+        let next: DoublyListNode<T> = node.next;
 
         // 排除 dummy 节点
         if (prev && next)
