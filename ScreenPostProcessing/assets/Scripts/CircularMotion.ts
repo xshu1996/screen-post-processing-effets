@@ -1,6 +1,7 @@
 const { ccclass, property, executeInEditMode } = cc._decorator;
 
 const angle2Radian: number = Math.PI / 180;
+const radian2Angle: number = 180 / Math.PI;
 
 @ccclass
 // @executeInEditMode
@@ -8,17 +9,26 @@ export default class CircularMotion extends cc.Component
 {
     /** 旋转中心点，基于父节点局部坐标 */
     private _centerPos: cc.Vec2 = cc.Vec2.ZERO;
-    public set centerPos(v : cc.Vec2) {
+    public set centerPos(v: cc.Vec2)
+    {
+        if (v.equals(this._centerPos))
+        {
+            return;
+        }
+        let p = this.node.getPosition();
+        let p1 = this._centerPos.sub(p);
+        let p2 = v.sub(p);
+        this._angleDelta = cc.v2(p1).signAngle(p2);
         this._centerPos = v;
     }
-    
-    private _radius: number = 50;
+    private _angleDelta: number = 0;
 
+    @property({ visible: CC_EDITOR })
+    private _radius: number = 200;
     public set radius(v: number) 
     {
         this._radius = v;
     }
-
     public get radius(): number
     {
         return this._radius;
@@ -26,19 +36,22 @@ export default class CircularMotion extends cc.Component
 
     private _initialized: boolean = false;
 
-    @property({ visible: true })
+    @property({ visible: CC_EDITOR })
     private _speed: number = 0;
     public get speed() 
     {
         return this._speed;
     }
-    public set speed(v : number) 
+    public set speed(v: number) 
     {
         this._speed = v;
     }
-    
-    @property(cc.Node)
+
+    @property({ type: cc.Node, visible: CC_EDITOR })
     public target: cc.Node = null;
+
+    @property(cc.Slider)
+    public slider: cc.Slider = null;
 
     private _rotateMat: number[] = [
         1, 0, 0,
@@ -52,11 +65,38 @@ export default class CircularMotion extends cc.Component
         0, 0, 1
     ];
 
+    private _angleOffset: number = 180;
+
     protected start(): void
     {
-        this.target.on(cc.Node.EventType.POSITION_CHANGED, () => {
+        if (cc.isValid(this.target))
+        {
             this.centerPos = this.target.getPosition();
+        }
+    }
+
+    protected onEnable(): void
+    {
+        if (cc.isValid(this.target))
+        {
+            this.target.on(cc.Node.EventType.POSITION_CHANGED, () =>
+            {
+                this.centerPos = this.target.getPosition();
+            }, this);
+        }
+
+        this.slider.node.on("slide", () =>
+        {
+            this.radius = this.slider.progress * (500 - 100) + 10;
         }, this);
+    }
+
+    protected onDisable(): void
+    {
+        if (cc.isValid(this.target))
+        {
+            this.target.off(cc.Node.EventType.POSITION_CHANGED, null, this);
+        }
     }
 
     public init(centerPos: cc.Vec2, radius: number, speed: number): void
@@ -68,7 +108,7 @@ export default class CircularMotion extends cc.Component
         this._initialized = true;
         this.centerPos = centerPos;
         this.radius = radius;
-        this._speed = speed; 
+        this._speed = speed;
     }
 
     public reset(): void
@@ -83,20 +123,30 @@ export default class CircularMotion extends cc.Component
         //     return;
         // }
 
-        let radian = dt * this._speed * angle2Radian;
-        this._setRotateMat(radian);
-
         let op = this.node.getPosition();
+        let cp = op.sub(this._centerPos);
+        let oldLen: number = cp.len();
+        let angle = cc.Vec2.RIGHT.signAngle(cp) * radian2Angle;
+        this.node.angle = angle + this._angleOffset;
 
+        cp.normalizeSelf().mulSelf(this._radius);
+        op = cp.add(this._centerPos);
+        // 设置平移矩阵，先将旋转原点平移到坐标系原点
         this._setTranslateMat(this._centerPos.mul(-1));
-        
         op = this.calculatePosByMat(op, this._translateMat);
+        // 通过角度计算旋转之后的向量
+        let radian: number = dt * this._speed * angle2Radian;
+        this._setRotateMat(radian - this._angleDelta);
+        // this._angleDelta && cc.log(this._angleDelta);
+        this._angleDelta = 0;
         op = this.calculatePosByMat(op, this._rotateMat);
-        
+        // 再将向量平移回去
         this._setTranslateMat(this._centerPos);
         op = this.calculatePosByMat(op, this._translateMat);
-    
-        // op.normalizeSelf().mulSelf(this._radius);
+
+        // op = this.node.getPosition().lerp(op, 0.5);
+        let dir = op.sub(this.node.getPosition());
+        
         this.node.setPosition(op);
     }
 
