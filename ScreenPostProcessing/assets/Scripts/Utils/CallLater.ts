@@ -60,8 +60,8 @@ export class CallLater
     /** @private */
     private _getHandler(caller: any, method: any): LaterHandler
     {
-        var cid: number = caller ? caller.$_GID || (caller.$_GID = Utils.getGID()) : 0;
-        var mid: number = method.$_TID || (method.$_TID = 2/*Utils.genNonDuplicateID(6)*/);
+        let cid: number = caller ? caller.$_GID || (caller.$_GID = Utils.getGID()) : 0;
+        let mid: number = method.$_TID || (method.$_TID = 2/*Utils.genNonDuplicateID(6)*/);
         return this._map[cid + '.' + mid];
     }
 
@@ -89,8 +89,8 @@ export class CallLater
             handler.method = method;
             handler.args = args;
             // 索引handler
-            var cid: number = caller ? caller.$_GID : 0;
-            var mid: number = (method as any)["$_TID"];
+            let cid: number = caller ? caller.$_GID : 0;
+            let mid: number = (method as any)["$_TID"];
             handler.key = cid + '.' + mid;
             this._map[handler.key] = handler
             // 插入队列
@@ -105,12 +105,43 @@ export class CallLater
      */
     public runCallLater(caller: any, method: Function): void
     {
-        var handler = this._getHandler(caller, method);
+        let handler = this._getHandler(caller, method);
         if (handler && handler.method != null)
         {
             this._map[handler.key] = null;
             handler.run();
             handler.clear();
+        }
+    }
+
+    /**
+     * 清理 handler。
+     * @param	caller 执行域(this)。
+     * @param	method 定时器回调函数。
+     */
+    clear(caller: any, method: Function): void
+    {
+        let handler: LaterHandler = this._getHandler(caller, method);
+        if (handler)
+        {
+            handler.clear();
+        }
+    }
+
+    /**
+     * 清理对象身上的所有 handler
+     * @param	caller 执行域(this)。
+     */
+    clearAll(caller: any): void
+    {
+        if (!caller) return;
+        for (let i: number = 0, n: number = this._laters.length; i < n; i++)
+        {
+            let handler: LaterHandler = this._laters[i];
+            if (handler.caller === caller)
+            {
+                handler.clear();
+            }
         }
     }
 }
@@ -133,10 +164,10 @@ class LaterHandler
 
     run(): void
     {
-        var caller = this.caller;
+        let caller = this.caller;
         if (caller && caller.destroyed) return this.clear();
-        var method = this.method;
-        var args = this.args;
+        let method = this.method;
+        let args = this.args;
         if (method == null) return;
         args ? method.apply(caller, args) : method.call(caller);
     }
