@@ -4,11 +4,11 @@ import { EventMgr } from "../Utils/EventMgr";
 import { EventNotify } from "../Utils/EventNotify";
 
 /** 红点模型
- * 关键数据为 state和isRedDot 字段 ， 也可通过此model的Laya.Event.CHANGE事件来监听isRedDot的变化。（注意移除）
- * <p>可通过setupCheckMethod配置检测方法
- * <p>在调用refresh时，会启用检测方法来设置红点值
- * <p>也可配置加入常用的公共事件（道具更新或指定其它事件类型），监听后会自动调用refresh方法。
- * <p>红点模型还有另外一种形态-组合功能： 即可通过child的相关方法， 加入或移除子级红点模型，
+ * 关键数据为 state 和 isRedDot 字段 ， 也可通过此 model 的 RED_DOT_CHANGED 事件来监听isRedDot的变化。（注意移除）
+ * 可通过 setupCheckMethod 配置检测方法
+ * 在调用 refresh 时，会启用检测方法来设置红点值
+ * 也可配置加入常用的公共事件（道具更新或指定其它事件类型），监听后会自动调用 refresh 方法。
+ * 红点模型还有另外一种形态-组合功能： 即可通过 child 的相关方法， 加入或移除子级红点模型，
  * 当子级中有红点变化时，会自动归纳到本级的红点状态中来
  * @author xshu
  */
@@ -56,7 +56,7 @@ export class RedDotModel extends cc.EventTarget
     public setRedDot(value: number): void
     {
         if (!this._isOpen) { value = 0; }
-        if (value == this._state) { return; }
+        if (value == this._state) return;
         this._state = value;
         this.emit(EventNotify.RED_DOT_CHANGED, this);
     }
@@ -70,7 +70,9 @@ export class RedDotModel extends cc.EventTarget
             console.log("refresh red dot is Destroy !!!!!!!!!!!!!!!!!!", this.sn, this.parentSn, this.bindData);
             return;
         }
-        if (!this._isOpen) { return; }
+
+        if (!this._isOpen) return;
+
         let redDot: number = 0;
         if (this._checkMethod) 
         { 
@@ -219,7 +221,7 @@ export class RedDotModel extends cc.EventTarget
     /** 归纳子级红点模型状态到本类中 */
     protected sumUpAllChildModel(): void
     {
-        if (!this._isOpen) { return; }
+        if (!this._isOpen) return;
         // 考虑到红点变更的消息推送频繁程度，仅统计有和无即可，如果有需要呈现数字的，再另行处理
         let dotCount = 0; 
         for (let el of this._childModes)
