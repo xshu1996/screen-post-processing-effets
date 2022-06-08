@@ -166,7 +166,7 @@ class Main extends cc.Component
     {
         this._renderList.forEach(ele =>
         {
-            let texture = ScreenPostProcessing.getRenderTexture({
+            let texture = ScreenPostProcessing.getRenderTextureFaster({
                 renderNode: cc.Canvas.instance.node,
                 frameSize: cc.size(Math.ceil(cc.visibleRect.width), Math.ceil(cc.visibleRect.height))
             });

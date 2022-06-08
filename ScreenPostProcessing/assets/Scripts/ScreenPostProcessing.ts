@@ -107,7 +107,9 @@ export class ScreenPostProcessing extends cc.Component
         return texture;
     }
 
-    /** 可复用截图 */
+    /** 
+     * 可复用截图,适合频繁截图，例如实时模糊
+     */
     public static getRenderTextureFaster(renderParam: IRenderParam): cc.RenderTexture
     {
         let { renderNode, frameSize, forceSnapShot = false, isClear = false } = renderParam;
@@ -120,7 +122,8 @@ export class ScreenPostProcessing extends cc.Component
             texture = new cc.RenderTexture();
             camera.targetTexture && delete camera.targetTexture['__targetRenderNode'];
             camera.targetTexture = texture;
-        } else
+        } 
+        else
         {
             texture = camera.targetTexture;
         }
@@ -133,11 +136,6 @@ export class ScreenPostProcessing extends cc.Component
             frameSize.width !== texture.width ||
             frameSize.height !== texture.height)
         {
-            // 对图片进行边缘检测，图片部分边缘的梯度会比较大
-            // （超出图片 uv 范围取到的纹素为黑色， 如果图片的边缘刚好偏白，那么计算出来的梯度就会很大）
-            // 最后使用 shader 处理过后的图片，周边会有很明显的黑线
-            // 暂时想到的办法是 截图后，重新填充一遍图片的数据，人工给图片阔边，填充透明
-            // 最后进行边缘检测时，图片边缘的梯度平滑
             texture.initWithSize(frameSize.width, frameSize.height, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
             // initWithSize 已经实现了 texture.packable = false;
             texture.setPremultiplyAlpha(true);
@@ -146,11 +144,6 @@ export class ScreenPostProcessing extends cc.Component
         texture['__targetRenderNode'] = renderNode;
         camera.render(renderNode);
         if (isClear) camera.targetTexture = null;
-        // 图片扩边操作
-        // let data: Uint8Array = texture.readPixels();
-        // // @ts-ignore
-        // data = this._extendTexture(data, frameSize.width, frameSize.height);
-        // texture.initWithData(data, cc.Texture2D.PixelFormat.RGBA8888, frameSize.width + 2 * OFF_SET, frameSize.height + 2 * OFF_SET);
 
         return texture;
     }
