@@ -120,8 +120,10 @@ export class ScreenPostProcessing extends cc.Component
         if (!cc.isValid(camera.targetTexture) || forceSnapShot)
         {
             texture = new cc.RenderTexture();
+            let oldRt = camera.targetTexture;
             camera.targetTexture && delete camera.targetTexture['__targetRenderNode'];
             camera.targetTexture = texture;
+            if (cc.isValid(oldRt)) oldRt.destroy();
         } 
         else
         {
