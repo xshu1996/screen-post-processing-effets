@@ -472,16 +472,16 @@ export class ScreenPostProcessing extends cc.Component
     {
         if (cc.isValid(node))
         {
-            if (node.groupIndex === cullGroupIndex)
+            if (node.groupIndex !== cullGroupIndex)
             {
-                return;
+                node["__original_group__"] = node.groupIndex;
+                node.groupIndex = cullGroupIndex;
             }
-            node["__original_group__"] = node.groupIndex;
-            node.groupIndex = cullGroupIndex;
-            // if (node.childrenCount > 0)
-            // {
-            //     node.children.forEach(child => this._cullNode(child, cullGroupIndex));
-            // }
+            
+            if (node.childrenCount > 0)
+            {
+                node.children.forEach(child => this._cullNode(child, cullGroupIndex));
+            }
         }
     }
 
