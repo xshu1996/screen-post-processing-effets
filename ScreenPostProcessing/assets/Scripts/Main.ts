@@ -97,7 +97,7 @@ class Main extends cc.Component
         this.p_btnShowPage.node.on('click', () =>
         {
             const recycleImg = ScreenPostProcessing.getRecycleShotTexture();
-            const shotNode = ScreenPostProcessing.getScreenShotNode(cc.Canvas.instance.node, true, recycleImg);
+            const shotNode = ScreenPostProcessing.getSnapshotNode(cc.Canvas.instance.node, true, recycleImg);
 
             const dlg = new cc.Node('Dialog');
             shotNode.on(cc.Node.EventType.TOUCH_END, (event: cc.Event.EventTouch) =>

@@ -151,7 +151,7 @@ export class ScreenPostProcessing extends cc.Component
     }
 
     // 生成截图节点
-    public static getScreenShotNode(renderNode: cc.Node, createNew: boolean, recycleTexture?): cc.Node
+    public static getSnapshotNode(renderNode: cc.Node, createNew: boolean, recycleTexture?): cc.Node
     {
         let texture: cc.RenderTexture;
         if (!cc.isValid(recycleTexture))
