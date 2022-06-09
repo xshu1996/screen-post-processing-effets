@@ -1,11 +1,16 @@
 {
   "last-module-event-record-time": 1629116791807,
   "group-list": [
-    "default"
+    "default",
+    "cullNode"
   ],
   "collision-matrix": [
     [
       true
+    ],
+    [
+      false,
+      false
     ]
   ],
   "excluded-modules": [

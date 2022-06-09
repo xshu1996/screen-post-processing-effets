@@ -168,7 +168,10 @@ class Main extends cc.Component
         {
             let texture = ScreenPostProcessing.getRenderTextureFaster({
                 renderNode: cc.Canvas.instance.node,
-                frameSize: cc.size(Math.ceil(cc.visibleRect.width), Math.ceil(cc.visibleRect.height))
+                frameSize: cc.size(Math.ceil(cc.visibleRect.width), Math.ceil(cc.visibleRect.height)),
+                // 剔除指定节点不参与截图示例代码，要改节点的 group 属性， 使用完毕后可以通过 restoreNodeGroup 方法还原原先的group
+                // cullGroupIndex: this.p_proText.node.groupIndex,
+                // ignoreNodes: [this.p_proText.node, cc.Canvas.instance.node.getChildByName("ImgArrow")]
             });
 
             ele.getComponent(cc.Sprite).spriteFrame.setTexture(texture);

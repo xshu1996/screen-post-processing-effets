@@ -10,9 +10,12 @@ const OFF_SET: number = 1; // 图片扩边长度
 interface IRenderParam
 {
     renderNode: cc.Node,
-    frameSize: cc.Size, // IMPORTANT 一定要传入整数！！！！
+    frameSize?: cc.Size, // IMPORTANT 一定要传入整数！！！！
     forceSnapShot?: boolean,
     isClear?: boolean,
+    cullGroupIndex?: number,
+    // 不参与截图的节点
+    ignoreNodes?: cc.Node[],
 }
 
 export enum EffectType
@@ -85,8 +88,26 @@ export class ScreenPostProcessing extends cc.Component
     /** 无复用截图，每次重新生成 */
     public static getRenderTexture(renderParam: IRenderParam): cc.RenderTexture
     {
-        let { renderNode, frameSize, isClear = true } = renderParam;
-        const node: cc.Node = this._getShotCameraNode(frameSize);
+        let {
+            renderNode,
+            frameSize,
+            isClear = true,
+            cullGroupIndex,
+            ignoreNodes = []
+        } = renderParam;
+
+        if (!cc.isValid(renderNode))
+        {
+            renderNode = cc.Canvas.instance.node;
+        }
+
+        if (!frameSize)
+        {
+            frameSize = cc.size(Math.ceil(renderNode.width), Math.ceil(renderNode.height));
+        }
+
+        const cullingMask: number = cullGroupIndex ? 1 << cullGroupIndex : 0;
+        const node: cc.Node = this._getShotCameraNode(frameSize, cullingMask);
         const camera: cc.Camera = node.getComponent(cc.Camera);
 
         let texture: cc.RenderTexture = new cc.RenderTexture();
@@ -101,6 +122,11 @@ export class ScreenPostProcessing extends cc.Component
         texture.setPremultiplyAlpha(true);
         camera["_updateTargetTexture"]();
 
+        if (cullGroupIndex !== undefined)
+        {
+            ignoreNodes.forEach(n => this._cullNode(n, cullGroupIndex));
+        }
+
         camera.render(renderNode);
         if (isClear) camera.targetTexture = null;
 
@@ -112,8 +138,27 @@ export class ScreenPostProcessing extends cc.Component
      */
     public static getRenderTextureFaster(renderParam: IRenderParam): cc.RenderTexture
     {
-        let { renderNode, frameSize, forceSnapShot = false, isClear = false } = renderParam;
-        const node: cc.Node = this._getShotCameraNode(frameSize);
+        let {
+            renderNode,
+            frameSize,
+            forceSnapShot = false,
+            isClear = false,
+            cullGroupIndex,
+            ignoreNodes = []
+        } = renderParam;
+
+        if (!cc.isValid(renderNode))
+        {
+            renderNode = cc.Canvas.instance.node;
+        }
+
+        if (!frameSize)
+        {
+            frameSize = cc.size(Math.ceil(renderNode.width), Math.ceil(renderNode.height));
+        }
+
+        const cullingMask: number = cullGroupIndex ? 1 << cullGroupIndex : 0;
+        const node: cc.Node = this._getShotCameraNode(frameSize, cullingMask);
         const camera: cc.Camera = node.getComponent(cc.Camera);
         // 如果只考虑实时模糊效果，可以不用每次 new 一个 cc.RenderTexture 复用 camera 的 targetTexture 可优化效率
         let texture: cc.RenderTexture;
@@ -124,7 +169,7 @@ export class ScreenPostProcessing extends cc.Component
             camera.targetTexture && delete camera.targetTexture['__targetRenderNode'];
             camera.targetTexture = texture;
             if (cc.isValid(oldRt)) oldRt.destroy();
-        } 
+        }
         else
         {
             texture = camera.targetTexture;
@@ -144,6 +189,12 @@ export class ScreenPostProcessing extends cc.Component
             camera["_updateTargetTexture"]();
         }
         texture['__targetRenderNode'] = renderNode;
+
+        if (cullGroupIndex !== undefined)
+        {
+            ignoreNodes.forEach(n => this._cullNode(n, cullGroupIndex));
+        }
+
         camera.render(renderNode);
         if (isClear) camera.targetTexture = null;
 
@@ -389,7 +440,7 @@ export class ScreenPostProcessing extends cc.Component
         return ret;
     }
 
-    private static _getShotCameraNode(frameSize: cc.Size): cc.Node
+    private static _getShotCameraNode(frameSize: cc.Size, cullingMask: number = 0): cc.Node
     {
         let camera: cc.Camera;
         let node: cc.Node = cc.Canvas.instance.node.getChildByName("ScreenShotInstance");
@@ -405,25 +456,47 @@ export class ScreenPostProcessing extends cc.Component
                 cc.Camera.ClearFlags.STENCIL |
                 cc.Camera.ClearFlags.COLOR;
 
-            camera.cullingMask = 0xffffffff;
             camera.enabled = false;
         } else
         {
             camera = node.getComponent(cc.Camera);
         }
+        // 不渲染 _cullingMask 为 cullingMask 的节点
+        camera.cullingMask = 0xffffffff ^ cullingMask;
         camera.zoomRatio = cc.winSize.height / frameSize.height;
         return node;
     }
 
     // 排除忽略渲染对象及其子对象
-    private static _cullNode(node: cc.Node, cullingMask: number): void
+    private static _cullNode(node: cc.Node, cullGroupIndex: number): void
     {
         if (cc.isValid(node))
         {
-            node["_cullingMask"] = cullingMask;
-            if (node.childrenCount > 0)
+            if (node.groupIndex === cullGroupIndex)
             {
-                node.children.forEach(child => this._cullNode(child, cullingMask));
+                return;
+            }
+            node["__original_group__"] = node.groupIndex;
+            node.groupIndex = cullGroupIndex;
+            // if (node.childrenCount > 0)
+            // {
+            //     node.children.forEach(child => this._cullNode(child, cullGroupIndex));
+            // }
+        }
+    }
+
+    public static restoreNodeGroup(node: cc.Node): void
+    {
+        if (cc.isValid(node))
+        {
+            const oriGrp = node["__original_group__"];
+            if (oriGrp !== undefined)
+            {
+                if (node.groupIndex !== oriGrp)
+                {
+                    node.groupIndex = oriGrp;
+                }
+                delete node["__original_group__"];
             }
         }
     }
