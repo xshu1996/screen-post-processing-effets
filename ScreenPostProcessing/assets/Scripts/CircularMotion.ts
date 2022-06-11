@@ -100,7 +100,7 @@ export default class CircularMotion extends cc.Component
         this.slider.handle.node.on(cc.Node.EventType.TOUCH_END, () =>
         {
             let v = this.slider.progress * (500 - 100) + 10 - this._radius;
-            cc.tween(this).by(2, { radius: v }).start();
+            cc.tween(this as any).by(2, { radius: v }).start();
         }, this);
     }
 
