@@ -202,11 +202,6 @@ class Main extends cc.Component
             return;
         }
 
-        if (!this.p_togGraphic.isChecked)
-        {
-            return;
-        }
-
         g.clear();
         g.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; ++i)

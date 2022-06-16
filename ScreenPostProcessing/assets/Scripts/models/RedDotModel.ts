@@ -3,12 +3,15 @@ import { CallLater } from "../Utils/CallLater";
 import { EventMgr } from "../Utils/EventMgr";
 import { EventNotify } from "../Utils/EventNotify";
 
-/** 红点模型
+/** 
+ * 红点模型
  * 关键数据为 state 和 isRedDot 字段 ， 也可通过此 model 的 RED_DOT_CHANGED 事件来监听isRedDot的变化。（注意移除）
  * 可通过 setupCheckMethod 配置检测方法
  * 在调用 refresh 时，会启用检测方法来设置红点值
  * 也可配置加入常用的公共事件（道具更新或指定其它事件类型），监听后会自动调用 refresh 方法。
  * 红点模型还有另外一种形态-组合功能： 即可通过 child 的相关方法， 加入或移除子级红点模型，
+ * 使用方法：每个红点模型互为独立红点逻辑，红点模型组合使用，需要哪几个红点模块就用一个空的红点模块去把需要的红点模块包装起来
+ * 本身容器不含任何红点检测逻辑，只负责包装红点模块，监听子节点红点变化事件
  * 当子级中有红点变化时，会自动归纳到本级的红点状态中来
  * @author xshu
  */

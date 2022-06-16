@@ -59,35 +59,32 @@ declare global
     }
 }
 
-Object.defineProperty(String.prototype, "formatByParam", {
-    writable: false,
-    value: function ()
+String.prototype["formatByParam"] = function ()
+{
+    if (arguments.length === 0)
     {
-        if (arguments.length === 0)
-        {
-            return this;
-        }
-
-        var param = arguments[0],
-            str = this;
-        if (typeof (param) === "object")
-        {
-            for (var key in param)
-            {
-                if (Object.prototype.hasOwnProperty.call(param, key))
-                {
-                    str = str.replace(new RegExp("\\{" + key + "\\}", "g"), param[key]);
-                }
-            }
-            return str;
-        }
-        else
-        {
-            for (var i = 0, len = arguments.length; i < len; ++i)
-            {
-                str = str.replace(new RegExp("\\{" + i + "\\}", "g"), arguments[i]);
-            }
-            return str;
-        }
+        return this;
     }
-});
+
+    var param = arguments[0],
+        str = this;
+    if (typeof (param) === "object")
+    {
+        for (var key in param)
+        {
+            if (Object.prototype.hasOwnProperty.call(param, key))
+            {
+                str = str.replace(new RegExp("\\{" + key + "\\}", "g"), param[key]);
+            }
+        }
+        return str;
+    }
+    else
+    {
+        for (var i = 0, len = arguments.length; i < len; ++i)
+        {
+            str = str.replace(new RegExp("\\{" + i + "\\}", "g"), arguments[i]);
+        }
+        return str;
+    }
+}

@@ -111,7 +111,7 @@ export class MathUtils
      * 旋转二维向量
      * @param angle 弧度
      */
-    public static  rotateVec2(p: Vec2, angle: number): Vec2
+    public static rotateVec2(p: Vec2, angle: number): Vec2
     {
         return new Vec2(
             Math.cos(angle) * p.x - Math.sin(angle) * p.y,
@@ -254,6 +254,46 @@ export class MathUtils
             }
             delete p["__valid__"];
         }
+
+        return ret;
+    }
+
+    /**
+     * simulates lightning bolts using midpoint displacement.
+     * @see {@link https://krazydad.com/bestiary/bestiary_lightning.html}
+     * @param {IVec2Like} startPos  起始点
+     * @param {IVec2Like} endPos 终点
+     * @param {number} detail 最短线段
+     * @param {number} displacement 电位移量
+     * @returns {IVec2Like[]}
+     */
+    public static lightningGenerator(startPos: IVec2Like, endPos: IVec2Like, detail: number, displacement: number): IVec2Like[]
+    {
+        const ret: IVec2Like[] = [];
+        const division = function (x1, y1, x2, y2, displace)
+        {
+            if (displace < detail)
+            {
+                if (ret.length === 0)
+                {
+                    // 起点
+                    ret.push({ x: x1, y: y1 });
+                }
+                // 中点 or 终点
+                ret.push({ x: x2, y: y2 });
+            }
+            else
+            {
+                let mid_x = x1 + (x2 - x1) / 2;
+                let mid_y = y1 + (y2 - y1) / 2;
+                mid_x += (Math.random() - 0.5) * displace;
+                mid_y += (Math.random() - 0.5) * displace;
+                division(x1, y1, mid_x, mid_y, displace / 2);
+                division(mid_x, mid_y, x2, y2, displace / 2);
+            }
+        }
+
+        division(startPos.x, startPos.y, endPos.x, endPos.y, displacement);
 
         return ret;
     }
