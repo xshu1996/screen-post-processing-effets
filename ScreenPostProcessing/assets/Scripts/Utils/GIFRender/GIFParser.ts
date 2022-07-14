@@ -231,7 +231,7 @@ class GIFParser
      * @param w
      * @param h
      */
-    private date2SpriteFrame(data, w, h)
+    private data2SpriteFrame(data, w, h)
     {
         let texture = new cc.RenderTexture();
         let spriteFrame = new cc.SpriteFrame();
@@ -441,7 +441,7 @@ class GIFParser
             {
                 this.putImageDataJSB(imageData, frame.img.x, frame.img.y, frame);
             }
-            this._spriteFrames[index] = this.date2SpriteFrame(this._lastData, this._canvas.width, this._canvas.height);
+            this._spriteFrames[index] = this.data2SpriteFrame(this._lastData, this._canvas.width, this._canvas.height);
         } else
         {
             //web平台
