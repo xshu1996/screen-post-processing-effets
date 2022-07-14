@@ -172,13 +172,6 @@ class GIFParser
             frame.ctrl.t ? (j == frame.ctrl.tranIndex ? imageData.data[k * 4 + 3] = 0 : 0) : 0;
         });
 
-        //测试数据
-        // for (var i = 0; i < imageData.data.length; i += 4) {
-        //     imageData.data[i + 0] = 255;
-        //     imageData.data[i + 1] = 0;
-        //     imageData.data[i + 2] = 0;
-        //     imageData.data[i + 3] = 255;
-        // }
         return imageData;
     }
 
@@ -215,7 +208,8 @@ class GIFParser
      */
     private dataUrl2SpriteFrame(dataUrl)
     {
-        let texture = new cc.Texture2D()
+        // TODO: add cache map to record reference: spriteFrame.addRef();
+        let texture = new cc.Texture2D();
         let spriteFrame = new cc.SpriteFrame();
         let image = new Image();
         image.src = dataUrl;
@@ -254,58 +248,58 @@ class GIFParser
      */
     putImageDataJSB(imageData, x, y, frame)
     {
-
-        let checkNullPixel = () =>
+        const self = this;
+        let checkNullPixel = function ()
         {
             if (imageData.data[0] == 4
                 && imageData.data[1] == 0
                 && imageData.data[2] == 0
                 && imageData.data[3] == 0)
             {
-                return true
+                return true;
             }
-            return false
+            return false;
         }
 
-        let checkAlpha = () =>
+        let checkAlpha = function ()
         {
-            let alphaCount = 0
+            let alphaCount = 0;
             for (let i = 0; i < imageData.height; i += 2)
             {
-                let lineCount = 0
+                let lineCount = 0;
                 for (let j = 0; j < imageData.width; j++)
                 {
-                    let indexData = i * 4 * imageData.width + 4 * j
+                    let indexData = i * 4 * imageData.width + 4 * j;
                     if (imageData.data[indexData + 3] == 0)
                     {
-                        lineCount++
+                        lineCount++;
                     }
                 }
                 if (lineCount / imageData.width > 0.1)
                 {
-                    alphaCount++
+                    alphaCount++;
                 }
-                if (alphaCount / (imageData.height / 2) > 0.6) return true
+                if (alphaCount / (imageData.height / 2) > 0.6) return true;
             }
-            return false
+            return false;
         }
 
-        //叠加图形
-        let replay = () =>
+        // 叠加图形
+        let replay = function ()
         {
             for (let i = 0; i < imageData.height; i++)
             {
                 for (let j = 0; j < imageData.width; j++)
                 {
-                    let indexData = i * 4 * imageData.width + 4 * j
-                    let indexLastData = (i + y) * 4 * this._lastData.width + 4 * (j + x)
-                    //新像素点的透明度不是0就替换掉旧像素
-                    if (imageData.data[indexData + 3] != 0)
+                    let indexData = i * 4 * imageData.width + 4 * j;
+                    let indexLastData = (i + y) * 4 * self._lastData.width + 4 * (j + x);
+                    // 新像素点的透明度不是0就替换掉旧像素
+                    if (imageData.data[indexData + 3] !== 0)
                     {
-                        this._lastData.data[indexLastData] = imageData.data[indexData]
-                        this._lastData.data[indexLastData + 1] = imageData.data[indexData + 1]
-                        this._lastData.data[indexLastData + 2] = imageData.data[indexData + 2]
-                        this._lastData.data[indexLastData + 3] = imageData.data[indexData + 3]
+                        self._lastData.data[indexLastData] = imageData.data[indexData];
+                        self._lastData.data[indexLastData + 1] = imageData.data[indexData + 1];
+                        self._lastData.data[indexLastData + 2] = imageData.data[indexData + 2];
+                        self._lastData.data[indexLastData + 3] = imageData.data[indexData + 3];
                     }
                 }
             }
@@ -314,64 +308,62 @@ class GIFParser
         //清理画布从新绘制
         let clearAndReplay = () =>
         {
-            for (let i = 0; i < this._lastData.height; i++)
+            for (let i = 0; i < self._lastData.height; i++)
             {
-                for (let j = 0; j < this._lastData.width; j++)
+                for (let j = 0; j < self._lastData.width; j++)
                 {
-                    let indexLastData = i * 4 * this._lastData.width + 4 * j
-                    let indexData = (i - y) * 4 * imageData.width + 4 * (j - x)
-                    let clear = false
+                    let indexLastData = i * 4 * self._lastData.width + 4 * j;
+                    let indexData = (i - y) * 4 * imageData.width + 4 * (j - x);
+                    let clear = false;
                     if (j < x || j > (x + imageData.width))
                     {
-                        clear = true
+                        clear = true;
                     }
                     if (i < y || i > (y + imageData.height))
                     {
-                        clear = true
+                        clear = true;
                     }
                     if (clear)
                     {
-                        this._lastData.data[indexLastData + 0] = 0;
-                        this._lastData.data[indexLastData + 1] = 0;
-                        this._lastData.data[indexLastData + 2] = 0;
-                        this._lastData.data[indexLastData + 3] = 0;
-                    } else
+                        self._lastData.data[indexLastData + 0] = 0;
+                        self._lastData.data[indexLastData + 1] = 0;
+                        self._lastData.data[indexLastData + 2] = 0;
+                        self._lastData.data[indexLastData + 3] = 0;
+                    }
+                    else
                     {
-                        this._lastData.data[indexLastData + 0] = imageData.data[indexData + 0]
-                        this._lastData.data[indexLastData + 1] = imageData.data[indexData + 1]
-                        this._lastData.data[indexLastData + 2] = imageData.data[indexData + 2]
-                        this._lastData.data[indexLastData + 3] = imageData.data[indexData + 3]
+                        self._lastData.data[indexLastData + 0] = imageData.data[indexData + 0];
+                        self._lastData.data[indexLastData + 1] = imageData.data[indexData + 1];
+                        self._lastData.data[indexLastData + 2] = imageData.data[indexData + 2];
+                        self._lastData.data[indexLastData + 3] = imageData.data[indexData + 3];
                     }
                 }
 
             }
         }
 
-        //如果和上一帧一样的不更新画布
-        if (checkNullPixel())
-        {
-            return
-        }
+        // 如果和上一帧一样的不更新画布
+        if (checkNullPixel()) return;
 
-        if (frame.ctrl.disp == 1 || frame.ctrl.disp == 0)
+        if (frame.ctrl.disp === 1 || frame.ctrl.disp === 0)
         {
             // 显示模式1 叠加图片
-            replay()
-        } 
+            replay();
+        }
         else if (frame.ctrl.disp == 2)
         {
             // 显示模式2 清理画布显示新的
-            clearAndReplay()
-        } 
+            clearAndReplay();
+        }
         else
         {
             if (checkAlpha())
             {
-                clearAndReplay()
-            } 
+                clearAndReplay();
+            }
             else
             {
-                replay()
+                replay();
             }
         }
     }
@@ -386,20 +378,21 @@ class GIFParser
      */
     putImageDataWeb(imageData, frame)
     {
-        let finalImageData
+        let finalImageData;
         if (frame.ctrl.disp == 1 || frame.ctrl.disp == 0)
         {
-            //叠加图形
+            // 叠加图形
             // 3、将当前frame的ImageData设置到canvas上（必须,否则会因为ImageData的尺寸大小可能不一样造成拉伸等错乱现象）
             this._context.putImageData(imageData, frame.img.x, frame.img.y, 0, 0, frame.img.w, frame.img.h);
             // 4、把当前imageData和上一帧imageData合并（必须，因为GIF的当前帧可能只提供了像素发生变化位置的信息）
             let curImageData = this._context.getImageData(0, 0, this._canvas.width, this._canvas.height);
             let lastImageData = this._lastData;
             finalImageData = this.mergeFrames(lastImageData, curImageData);
-        } else
+        }
+        else
         {
-            //清理画布从新绘制
-            this._context.clearRect(0, 0, this._canvas.width, this._canvas.height)
+            // 清理画布从新绘制
+            this._context.clearRect(0, 0, this._canvas.width, this._canvas.height);
             // 3、将当前frame的ImageData设置到canvas上（必须,否则会因为ImageData的尺寸大小可能不一样造成拉伸等错乱现象）
             this._context.putImageData(imageData, frame.img.x, frame.img.y, 0, 0, frame.img.w, frame.img.h);
             // 4、把当前imageData和上一帧imageData合并（必须，因为GIF的当前帧可能只提供了像素发生变化位置的信息）
@@ -437,15 +430,17 @@ class GIFParser
             if (!this._lastData)
             {
                 this._lastData = imageData
-            } else
+            }
+            else
             {
                 this.putImageDataJSB(imageData, frame.img.x, frame.img.y, frame);
             }
             this._spriteFrames[index] = this.data2SpriteFrame(this._lastData, this._canvas.width, this._canvas.height);
-        } else
+        }
+        else
         {
             //web平台
-            let dataUrl = this.putImageDataWeb(imageData, frame)
+            let dataUrl = this.putImageDataWeb(imageData, frame);
             this._spriteFrames[index] = this.dataUrl2SpriteFrame(dataUrl);
         }
 
@@ -482,7 +477,7 @@ class GIFParser
     private getScrDesc()
     {
         // await 0;
-        var arr = this.read(7), i;
+        let arr = this.read(7);
         this._info.w = arr[0] + (arr[1] << 8);
         this._info.h = arr[2] + (arr[3] << 8);
         this._info.m = 1 & arr[4] >> 7;
@@ -509,10 +504,10 @@ class GIFParser
 
         switch (arr[0])
         {
-            case 33: //扩展块
+            case 33: // 扩展块
                 this.extension();
                 break;
-            case 44: //图象标识符
+            case 44: // 图象标识符
                 arr = this.read(9);
                 this._frame.img = {
                     x: arr[0] + (arr[1] << 8),
@@ -541,7 +536,8 @@ class GIFParser
                         {
                             srcBuf.push(e);
                         });
-                    } else
+                    }
+                    else
                     {
                         this._frame.img.srcBuf = srcBuf;
                         this.decode();
@@ -564,7 +560,7 @@ class GIFParser
      */
     private extension()
     {
-        var arr = this.read(1), o, s;
+        let arr = this.read(1);
         switch (arr[0])
         {
             case 255: //应用程序扩展
@@ -587,7 +583,8 @@ class GIFParser
                             break;
                         }
                     };
-                } else
+                }
+                else
                 {
                     throw new Error('解析出错');
                 }
@@ -608,11 +605,13 @@ class GIFParser
                     if (this.read(1)[0] == 0)
                     {
                         this.decode();
-                    } else
+                    }
+                    else
                     {
                         throw new Error('解析出错');
                     }
-                } else
+                }
+                else
                 {
                     throw new Error('解析出错');
                 }
@@ -658,7 +657,6 @@ class GIFParser
         this._canvas = null;
         this._context = null;
     }
-
 }
 
 
@@ -701,7 +699,7 @@ class GIFCache
                     {
                         buffer = await file.arrayBuffer();
                     }
-                    gif.handle(buffer, onComplete)
+                    gif.handle(buffer, onComplete);
                 })
             }
         }
@@ -712,10 +710,10 @@ class GIFCache
     {
         if (this.has(key) == true)
         {
-            let item = this.get(key)
-            item.referenceCount++
-            item.frameData = frameData
-        } 
+            let item = this.get(key);
+            item.referenceCount++;
+            item.frameData = frameData;
+        }
         else
         {
             let gifCacheItem = { referenceCount: 0, type: FileType.GIF, frame: {} };
@@ -728,12 +726,13 @@ class GIFCache
     {
         if (this.has(key))
         {
-            let item = this.get(key)
-            item.type = type
-        } else
+            let item = this.get(key);
+            item.type = type;
+        }
+        else
         {
-            let gifCaheItem = { referenceCount: 0, type: type, frame: null }
-            this.gifFrameMap[key] = gifCaheItem
+            let gifCacheItem = { referenceCount: 0, type: type, frame: null };
+            this.gifFrameMap[key] = gifCacheItem;
         }
     }
 
@@ -741,13 +740,13 @@ class GIFCache
     {
         if (!this.has(key))
         {
-            this.gifFrameMap[key] = value
+            this.gifFrameMap[key] = value;
         }
     }
 
     get(key: any): GIFCacheItem
     {
-        return this.gifFrameMap[key]
+        return this.gifFrameMap[key];
     }
 
 
@@ -755,23 +754,23 @@ class GIFCache
     {
         if (this.gifFrameMap[key] == undefined)
         {
-            return false
+            return false;
         }
-        return true
+        return true;
     }
 
     hasFrame(key: any)
     {
-        let item = this.get(key)
+        let item = this.get(key);
         if (item != undefined)
         {
             let itemFrame = item.frameData
             if (itemFrame != null)
             {
-                return true
+                return true;
             }
         }
-        return false
+        return false;
     }
 
     /**
@@ -787,6 +786,7 @@ class GIFCache
             const asset = cc.assetManager.assets.get(key);
             cc.assetManager.releaseAsset(asset);
         }
+        console.log(`release gif, url: ${key}`);
     }
 
     releaseAll()
@@ -796,7 +796,7 @@ class GIFCache
             const asset = cc.assetManager.assets.get(key);
             cc.assetManager.releaseAsset(asset);
         }
-        this.gifFrameMap = {}
+        this.gifFrameMap = {};
     }
 }
 
@@ -809,7 +809,7 @@ interface GIFFrameData
     delays: Array<number>,
 
     spriteFrames: Array<cc.SpriteFrame>,
-    length: number
+    length: number,
 }
 
 interface GIFCacheItem
@@ -819,7 +819,7 @@ interface GIFCacheItem
     /*文件类型*/
     type: FileType,
     /*gif解析后的数据 */
-    frameData: GIFFrameData
+    frameData: GIFFrameData,
 }
 
 export { GIFParser, GIFCache, GIFFrameData, GIFCacheItem as GIFCacheItem }
