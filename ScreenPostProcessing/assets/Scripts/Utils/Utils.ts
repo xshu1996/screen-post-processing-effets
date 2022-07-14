@@ -49,6 +49,24 @@ export class Utils
         }
         return window.btoa(binary);
     }
+
+    /**
+    * @description 快速获取某个数据对象中深层 key 的值
+    * @param src 数据对象
+    * @param key 要获取值对应的 key，层级通过 # 分割
+    */
+    public static key4property(src: any, key: string): any
+    {
+        if (!src) return undefined;
+        let keys = key.split('#');
+        for (let i = 0, j = keys.length; i < j; i++)
+        {
+            src = src[keys[i]];
+            if (typeof src == 'object' && src != null) continue;
+            if (i < j - 1) return undefined;
+        }
+        return src;
+    }
 }
 
 declare global

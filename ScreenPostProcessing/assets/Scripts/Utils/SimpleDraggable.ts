@@ -1,6 +1,8 @@
-const { ccclass } = cc._decorator;
+const { ccclass, disallowMultiple, menu } = cc._decorator;
 
 @ccclass
+@disallowMultiple
+@menu("Utils/SimpleDrag")
 export default class SimpleDraggable extends cc.Component
 {
     protected _touchOffset: cc.Vec2 = cc.Vec2.ZERO;

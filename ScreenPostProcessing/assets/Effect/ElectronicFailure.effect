@@ -13,6 +13,8 @@ CCEffect %{
       properties:
         texture: { value: white }
         alphaThreshold: { value: 0.5 }
+        UVoffset: { value: [0.0, 0.0, 1.0, 1.0] }
+        rotated: { value: 0.0 }
 }%
 
 
@@ -65,6 +67,11 @@ CCProgram fs %{
   uniform sampler2D texture;
   #endif
 
+  uniform Constant {
+    vec4 UVoffset;
+    float rotated;
+  };
+
   float randomNoise2(vec2 seed)
   {
     float speed = 10.0;
@@ -81,7 +88,7 @@ CCProgram fs %{
 		return floor(x * num_levels) / num_levels;
 	}
 	
-	vec2 trunc(vec2 x, vec2 num_levels)
+	vec2 trunc2(vec2 x, vec2 num_levels)
 	{
 		return floor(x * num_levels) / num_levels;
 	}
@@ -104,16 +111,16 @@ CCProgram fs %{
 		return rgb;
 	}
   // normal RGB Split Glitch
-  vec4 normalGlith() {
-    vec4 o = texture(texture, v_uv0);
+  vec4 normalGlith(vec2 uv) {
+    vec4 o = texture(texture, uv);
     float intensity = 8.0;
     float splitAmount = intensity * randomNoise(time, 2.0);
-    vec4 ColorR = texture(texture, vec2(v_uv0.x + splitAmount, v_uv0.y));
-    vec4 ColorG = texture(texture, v_uv0);
-    vec4 ColorB = texture(texture, vec2(v_uv0.x - splitAmount, v_uv0.y));
+    vec4 ColorR = texture(texture, vec2(uv.x + splitAmount, uv.y));
+    vec4 ColorG = texture(texture, uv);
+    vec4 ColorB = texture(texture, vec2(uv.x - splitAmount, uv.y));
     o = vec4(ColorR.r, ColorG.g, ColorB.b, ColorR.a + ColorB.a + ColorG.a);
 
-    better RGB Split Glitch
+    // better RGB Split Glitch
     float splitAmount = (1.0 + sin(time * 6.0)) * 0.5;
     splitAmount *= 1.0 + sin(time * 16.0) * 0.5;
     splitAmount *= 1.0 + sin(time * 19.0) * 0.5;
@@ -122,17 +129,17 @@ CCProgram fs %{
     splitAmount *= (0.05 * 13.9);
 
     vec2 offset = vec2(splitAmount);
-    vec4 driftColor0 = texture(texture, v_uv0 + offset);
-    vec4 driftColor1 = texture(texture, v_uv0 - offset);
+    vec4 driftColor0 = texture(texture, uv + offset);
+    vec4 driftColor1 = texture(texture, uv - offset);
 
     o = vec4(driftColor0.r, o.g, driftColor1.b, o.a + driftColor0.a + driftColor1.a);
     return o;
   }
 
   // 错位图块故障（Image Block Glitch）
-  vec4 imageBlockGlitch() {
-    vec4 o = texture(texture, v_uv0);
-    float block = randomNoise2(floor(v_uv0 * 8.0));
+  vec4 imageBlockGlitch(vec2 uv) {
+    vec4 o = texture(texture, uv);
+    float block = randomNoise2(floor(uv * 8.0));
     float displaceNoise = pow(block, 8.0) * pow(block, 3.0);
     float splitRGBNoise = pow(randomNoise2(vec2(7.2341, 1.0)), 17.0);
     float offsetX = displaceNoise - splitRGBNoise * 1.0; 
@@ -142,63 +149,119 @@ CCProgram fs %{
     float noiseY = 0.05 * randomNoise2(vec2(7.0, 1.0));
     vec2 offset = vec2(offsetX * noiseX, offsetY * noiseY);
 
-    vec4 driftColor0 = texture(texture, v_uv0 + offset);
-    vec4 driftColor1 = texture(texture, v_uv0 - offset);
+    vec4 driftColor0 = texture(texture, uv + offset);
+    vec4 driftColor1 = texture(texture, uv - offset);
 
     o = vec4(driftColor0.r, o.g, driftColor1.b, o.a + driftColor0.a + driftColor1.a);
     return o;
   }
+  // 错位线条故障 (line block glitch)
+  vec4 lineBlockGlitchVertical(vec2 uv) {
+		// uniform
+    float _LinesWidth = 1.0;
+    float _Amount = 0.5;
+    float _Speed = 1.0;
+    float _Offset = 1.0;
+    float _Alpha = 1.0;
 
-  vec4 lineBlockGlitch() {
-    vec2 uv = v_uv0;
-		
-		float strength = 0.0;
-		
-    strength = 0.5 + 0.5 * cos(cc_time.x * 100.0);
-		
-		float _TimeX = strength * cc_time.x;
+		float strength = 10.0;
+		float _TimeX = cc_time.x;
+    strength = 0.5 + 0.5 * cos(_TimeX * 100.0);
+    _TimeX *= strength;
 		
 		// [1] 生成随机均匀宽度线条
 		float truncTime = trunc(_TimeX, 4.0);
-		float uv_trunc = randomNoise(trunc(uv.xx, vec2(8, 8)) + 100.0 * truncTime);
+		float uv_trunc = randomNoise2(trunc2(vec2(uv.x), vec2(8.0, 8.0)) + 100.0 * truncTime);
 		float uv_randomTrunc = 6.0 * trunc(_TimeX, 24.0 * uv_trunc);
 		
 		// [2] 生成随机非均匀宽度线条 | Generate Random inhomogeneous Block Line
-		float blockLine_random = 0.5 * randomNoise(trunc(uv.xx + uv_randomTrunc, vec2(8 * _LinesWidth, 8 * _LinesWidth)));
-		blockLine_random += 0.5 * randomNoise(trunc(uv.xx + uv_randomTrunc, vec2(7, 7)));
+		float blockLine_random = 0.5 * randomNoise2(trunc2(vec2(uv.x) + uv_randomTrunc, vec2(8.0 * _LinesWidth, 8.0 * _LinesWidth)));
+		blockLine_random += 0.5 * randomNoise2(trunc2(vec2(uv.x) + uv_randomTrunc, vec2(7.0, 7.0)));
 		blockLine_random = blockLine_random * 2.0 - 1.0;
-		blockLine_random = sign(blockLine_random) * saturate((abs(blockLine_random) - _Amount) / (0.4));
-		blockLine_random = lerp(0, blockLine_random, _Offset);
+		blockLine_random = sign(blockLine_random) * clamp((abs(blockLine_random) - _Amount) / (0.4), 0.0, 1.0);
+		blockLine_random = mix(0.0, blockLine_random, _Offset);
 		
-		// // [3] 生成源色调的blockLine Glitch
-		// vec2 uv_blockLine = uv;
-		// uv_blockLine = saturate(uv_blockLine + vec2(0, 0.1 * blockLine_random));
-		// vec4 blockLineColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, abs(uv_blockLine));
+		// [3] 生成源色调的blockLine Glitch
+		vec2 uv_blockLine = uv;
+		uv_blockLine = clamp(uv_blockLine + vec2(0, 0.1 * blockLine_random), vec2(0.), vec2(1.));
+		vec4 blockLineColor = texture(texture, abs(uv_blockLine));
 		
-		// // [4] 将RGB转到YUV空间，并做色调偏移
-		// // RGB -> YUV
-		// vec3 blockLineColor_yuv = rgb2yuv(blockLineColor.rgb);
-		// // adjust Chrominance | 色度
-		// blockLineColor_yuv.y /= 1.0 - 3.0 * abs(blockLine_random) * saturate(0.5 - blockLine_random);
-		// // adjust Chroma | 浓度
-		// blockLineColor_yuv.z += 0.125 * blockLine_random * saturate(blockLine_random - 0.5);
-		// vec3 blockLineColor_rgb = yuv2rgb(blockLineColor_yuv);
+		// [4] 将RGB转到YUV空间，并做色调偏移
+		// RGB -> YUV
+		vec3 blockLineColor_yuv = rgb2yuv(blockLineColor.rgb);
+		// adjust Chrominance | 色度
+		blockLineColor_yuv.y /= 1.0 - 3.0 * abs(blockLine_random) * clamp(0.5 - blockLine_random, 0.0, 1.0);
+		// adjust Chroma | 浓度
+		blockLineColor_yuv.z += 0.125 * blockLine_random * clamp(blockLine_random - 0.5, 0.0, 1.0);
+		vec3 blockLineColor_rgb = yuv2rgb(blockLineColor_yuv);
 		
-		// // [5] 与源场景图进行混合
-		// vec4 sceneColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.texcoord);
-		// return lerp(sceneColor, vec4(blockLineColor_rgb, blockLineColor.a), _Alpha);
+		// [5] 与源场景图进行混合
+		vec4 sceneColor = texture(texture, uv);
+		return mix(sceneColor, vec4(blockLineColor_rgb, blockLineColor.a), _Alpha);
+  }
+
+  vec4 lineBlockGlitchHorizontal(vec2 uv) {
+		// uniform
+    float _LinesWidth = 1.0;
+    float _Amount = 0.5;
+    float _Speed = 1.0;
+    float _Offset = 1.0;
+    float _Alpha = 1.0;
+
+		float strength = 10.0;
+		float _TimeX = cc_time.x;
+    strength = 0.5 + 0.5 * cos(_TimeX * 100.0);
+    _TimeX *= strength;
+		
+		// [1] 生成随机均匀宽度线条
+		float truncTime = trunc(_TimeX, 4.0);
+		float uv_trunc = randomNoise2(trunc2(vec2(uv.y), vec2(8.0, 8.0)) + 100.0 * truncTime);
+		float uv_randomTrunc = 6.0 * trunc(_TimeX, 24.0 * uv_trunc);
+		
+		// [2] 生成随机非均匀宽度线条 | Generate Random inhomogeneous Block Line
+		float blockLine_random = 0.5 * randomNoise2(trunc2(vec2(uv.y) + uv_randomTrunc, vec2(8.0 * _LinesWidth, 8.0 * _LinesWidth)));
+		blockLine_random += 0.5 * randomNoise2(trunc2(vec2(uv.y) + uv_randomTrunc, vec2(7.0, 7.0)));
+		blockLine_random = blockLine_random * 2.0 - 1.0;
+		blockLine_random = sign(blockLine_random) * clamp((abs(blockLine_random) - _Amount) / (0.4), 0.0, 1.0);
+		blockLine_random = mix(0.0, blockLine_random, _Offset);
+		
+		// [3] 生成源色调的blockLine Glitch
+		vec2 uv_blockLine = uv;
+		uv_blockLine = clamp(uv_blockLine + vec2(0, 0.1 * blockLine_random), vec2(0.), vec2(1.));
+		vec4 blockLineColor = texture(texture, abs(uv_blockLine));
+		
+		// [4] 将RGB转到YUV空间，并做色调偏移
+		// RGB -> YUV
+		vec3 blockLineColor_yuv = rgb2yuv(blockLineColor.rgb);
+		// adjust Chrominance | 色度
+		blockLineColor_yuv.y /= 1.0 - 3.0 * abs(blockLine_random) * clamp(0.5 - blockLine_random, 0.0, 1.0);
+		// adjust Chroma | 浓度
+		blockLineColor_yuv.z += 0.125 * blockLine_random * clamp(blockLine_random - 0.5, 0.0, 1.0);
+		vec3 blockLineColor_rgb = yuv2rgb(blockLineColor_yuv);
+		
+		// [5] 与源场景图进行混合
+		vec4 sceneColor = texture(texture, uv);
+		return mix(sceneColor, vec4(blockLineColor_rgb, blockLineColor.a), _Alpha);
   }
 
   void main () {
     vec4 o = vec4(1, 1, 1, 1);
     float time = cc_time.x;
+    // v_uv0 归一化
+    vec2 normalizedUV;
+    normalizedUV.x = (v_uv0.x - UVoffset.x) / (UVoffset.z - UVoffset.x);
+    normalizedUV.y = (v_uv0.y - UVoffset.y) / (UVoffset.w - UVoffset.y);
+    if (rotated > 0.5) {
+      float temp = normalizedUV.x;
+      normalizedUV.x = normalizedUV.y;
+      normalizedUV.y = 1.0 - temp;
+    }
 
     #if USE_TEXTURE
       CCTexture(texture, v_uv0, o);
     #endif
 
-    o = imageBlockGlitch();
-
+    o = lineBlockGlitchHorizontal(normalizedUV);
     o *= v_color;
 
     ALPHA_TEST(o);

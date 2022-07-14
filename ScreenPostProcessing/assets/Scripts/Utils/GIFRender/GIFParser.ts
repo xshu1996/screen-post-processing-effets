@@ -682,7 +682,7 @@ class GIFCache
                 cc.assetManager.parser.register('.gif', (file, options, onComplete) =>
                 {
                     let gif = new GIFParser();
-                    cc.log('>>> file:', file);
+                    console.log('>>> file:', file);
                     // @ts-ignore
                     let buffer = jsb.fileUtils.getDataFromFile(file);
                     gif.handle(buffer, onComplete);
@@ -693,7 +693,7 @@ class GIFCache
                 cc.assetManager.parser.register('.gif', async (file, options, onComplete) =>
                 {
                     let gif = new GIFParser();
-                    cc.log('>>> file:', file);
+                    console.log('>>> file:', file);
                     let buffer = file;
                     if (file.arrayBuffer)
                     {
