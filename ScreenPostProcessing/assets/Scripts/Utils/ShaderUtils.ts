@@ -34,11 +34,24 @@ export class ShaderUtils
                 data[i * 2 * 4 + j * 4 + 3] = 255;
             }
         }
-        
+
         const texture = new cc.Texture2D();
         texture.name = "single color";
         texture.initWithData(data, cc.Texture2D.PixelFormat.RGBA8888, 2, 2);
-        
+
         return texture;
+    }
+
+    /**
+     * 获取随机 color
+     */
+    public static randomColor(): cc.Color
+    {
+        return new cc.Color(
+            Math.floor(Math.random() * 256), // generate 0~255 number
+            Math.floor(Math.random() * 256),
+            Math.floor(Math.random() * 256),
+            Math.floor(Math.random() * 256)
+        );
     }
 }
