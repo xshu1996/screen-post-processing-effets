@@ -15,6 +15,8 @@ const INTERACTION_UI_Z_INDEX = 1;
 @executeInEditMode
 class Main extends cc.Component
 {
+    @property(cc.Label)
+    public repositoryAddress: cc.Label = null;
 
     @property(cc.Button)
     public p_btnShowPage: cc.Button = null;
@@ -154,6 +156,10 @@ class Main extends cc.Component
             this._graPoints.push(nodePos);
             this._graPoints = MathUtils.simplifyLightBar(this._graPoints, 5);
             this._drawTrack(this.graph, this._graPoints);
+        }, this);
+
+        this.repositoryAddress.node.on(cc.Node.EventType.TOUCH_END, () => {
+            window.open(this.repositoryAddress.string);
         }, this);
     }
 

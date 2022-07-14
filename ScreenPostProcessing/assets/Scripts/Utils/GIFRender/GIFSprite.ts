@@ -88,6 +88,10 @@ export default class GIFSprite extends cc.Component
     protected onLoad(): void
     {
         this._registerComps();
+    }
+
+    protected onEnable(): void
+    {
         if (this.path)
         {
             let isRemote = this.path.indexOf("http") > -1;
