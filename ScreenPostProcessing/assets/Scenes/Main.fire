@@ -7721,8 +7721,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 100,
-      "height": 100
+      "width": 128,
+      "height": 152
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -7766,7 +7766,7 @@
       "__id__": 161
     },
     "_enabled": true,
-    "_path": "texture/gifs/duck1",
+    "_path": "https://n.sinaimg.cn/tech/transform/280/w128h152/20210528/d2fb-kquziih9543861.gif",
     "_useAnimationClip": false,
     "_speed": 1,
     "_id": "00gx9+YddJxLy18Tg+dtYS"
@@ -7906,7 +7906,7 @@
       "__id__": 166
     },
     "_enabled": true,
-    "_path": "https://n.sinaimg.cn/tech/transform/280/w128h152/20210528/d2fb-kquziih9543861.gif",
+    "_path": "texture/gifs/duck1",
     "_useAnimationClip": true,
     "_speed": 1,
     "_id": "88IwLEIkFPU4ubJ4UcV5eN"

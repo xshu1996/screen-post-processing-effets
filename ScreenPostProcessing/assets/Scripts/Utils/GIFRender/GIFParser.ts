@@ -429,7 +429,7 @@ class GIFParser
             //原生平台
             if (!this._lastData)
             {
-                this._lastData = imageData
+                this._lastData = imageData;
             }
             else
             {
