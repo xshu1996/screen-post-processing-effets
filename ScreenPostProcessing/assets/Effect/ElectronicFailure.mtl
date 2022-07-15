@@ -1,6 +1,6 @@
 {
   "__type__": "cc.Material",
-  "_name": "New Material",
+  "_name": "ElectronicFailure",
   "_objFlags": 0,
   "_native": "",
   "_effectAsset": {
@@ -10,7 +10,8 @@
   "_techniqueData": {
     "0": {
       "defines": {
-        "USE_TEXTURE": true
+        "USE_TEXTURE": true,
+        "USE_STRIP_NOISE_TEXTURE": true
       }
     }
   }

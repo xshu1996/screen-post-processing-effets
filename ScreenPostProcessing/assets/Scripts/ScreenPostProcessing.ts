@@ -4,6 +4,8 @@
  * @description 屏幕后处理 高斯模糊弹窗背景 流程： 截图->应用材质->截图
  */
 
+import { ShaderUtils } from "./Utils/ShaderUtils";
+
 const { ccclass, property } = cc._decorator;
 const OFF_SET: number = 1; // 图片扩边长度
 

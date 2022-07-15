@@ -54,4 +54,40 @@ export class ShaderUtils
             Math.floor(Math.random() * 256)
         );
     }
+
+    /**
+     * 生成颜色条纹噪声图
+     * @param stripLength number 条纹长度
+     * @param size cc.Size 噪声图尺寸
+     * @param recycleRt cc.RenderTexture 可选，是否复用传入 renderTexture
+     * @returns the noise renderTexture
+     */
+    public static genColorNoiseRT(stripLength: number, size: cc.Size, recycleRt?: cc.RenderTexture): cc.RenderTexture
+    {
+        let _noiseRT = cc.isValid(recycleRt) ? recycleRt : new cc.RenderTexture();
+        let w = size.width | 0,
+            h = size.height | 0;
+        const pixelData = new Uint8Array(w * h * 4);
+        let randCol = this.randomColor();
+        for (let i: number = 0; i < h; ++i)
+        {
+            for (let j: number = 0; j < w; ++j)
+            {
+                if (Math.random() > stripLength)
+                {
+                    randCol = this.randomColor();
+                }
+
+                let start: number = i * w * 4 + j * 4;
+                pixelData[start]     = randCol.r;
+                pixelData[start + 1] = randCol.g;
+                pixelData[start + 2] = randCol.b;
+                pixelData[start + 3] = 255.0;
+            }
+        }
+        _noiseRT.initWithData(pixelData, cc.Texture2D.PixelFormat.RGBA8888, w, h);
+        _noiseRT.packable = false;
+
+        return _noiseRT;
+    }
 }

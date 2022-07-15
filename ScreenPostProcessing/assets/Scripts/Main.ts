@@ -6,6 +6,7 @@
 
 import { ScreenPostProcessing, EffectType } from "./ScreenPostProcessing";
 import { MathUtils } from "./Utils/MathUtils";
+import { ShaderUtils } from "./Utils/ShaderUtils";
 
 const { ccclass, property, executeInEditMode } = cc._decorator;
 
@@ -181,6 +182,15 @@ class Main extends cc.Component
             });
 
             ele.getComponent(cc.Sprite).spriteFrame.setTexture(texture);
+            if (ScreenPostProcessing.effectType === EffectType.Glitch)
+            {
+                let mtl = ele.getComponent(cc.Sprite).getMaterial(0);
+                if (mtl.getDefine("USE_STRIP_NOISE_TEXTURE"))
+                {
+                    if (cc.director.getTotalFrames() % 3 == 0)
+                        mtl.setProperty("stripNoiseTex", ShaderUtils.genColorNoiseRT(0.89, cc.size(20, 20)));
+                }
+            }
             ele.getComponent(cc.Sprite)["_updateMaterial"]();
         });
 
