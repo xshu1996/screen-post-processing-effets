@@ -35,6 +35,13 @@ CCEffect %{
             - 1.000
           inspector: 
               type: color
+        u_startPoint:
+          value:
+            - 0.5
+            - 0.5
+        u_disEffect:
+          value:
+            - 0.737
 }%
 
 
@@ -91,6 +98,14 @@ CCProgram fs %{
   uniform sampler2D noiseTex;
   #endif
 
+  #if USE_FIXED_POINT
+  uniform u_fixedPoint
+  {
+    vec2 u_startPoint;
+    float u_disEffect;
+  };
+  #endif
+
   uniform u_constant
   {
     vec4 u_burnColInner;
@@ -109,18 +124,32 @@ CCProgram fs %{
       CCTexture(texture, v_uv0, o);
     #endif
 
-    o *= v_color;
+    vec4 nc = vec4(1.0);
 
     #if USE_NOISE_TEXTURE
-    vec4 nc = texture(noiseTex, v_uv0);
-    // 阈值计算
-    float noiseThreshold = fract(cc_time.x / 5.0);
-    float t = smoothstep(0.0, u_edgetWidth, nc.r - noiseThreshold);
-    
+      nc = texture2D(noiseTex, v_uv0);
+    #endif
+
+    float delta = 1.0;
+    #if USE_FIXED_POINT
+      float dis = distance(u_startPoint, v_uv0);
+      vec4 noiseColor = texture2D(noiseTex, v_uv0);
+      float cutout = noiseColor.r * dis * (1.0 - u_disEffect) + dis * u_disEffect;
+      float speed = 1.0;
+      float threshold = abs(1.0 - sin(cc_time.x * speed));
+      delta = cutout - threshold;
+    #else
+      // 阈值计算
+      float noiseThreshold = fract(cc_time.x / 5.0);
+      delta = nc.r - noiseThreshold;
+    #endif
+
+    float t = smoothstep(0.0, u_edgetWidth, delta);
     vec3 burnColor = mix(u_burnColOuter.rgb, u_burnColInner.rgb, t);
     o.rgb = mix(burnColor.rgb, o.rgb, t);
-    o.a *= step(0.0, nc.r - noiseThreshold);
-    #endif
+    o.a *= step(0.0, delta);
+
+    o *= v_color;
 
     ALPHA_TEST(o);
 

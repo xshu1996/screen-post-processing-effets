@@ -11,7 +11,9 @@
     "0": {
       "defines": {
         "USE_TEXTURE": true,
-        "USE_NOISE_TEXTURE": true
+        "USE_NOISE_TEXTURE": true,
+        "USE_FIXED_POINT": true,
+        "USE_ALPHA_TEST": false
       },
       "props": {
         "noiseTex": {
@@ -30,6 +32,11 @@
           "g": 250,
           "b": 255,
           "a": 255
+        },
+        "u_startPoint": {
+          "__type__": "cc.Vec2",
+          "x": 1,
+          "y": 0
         }
       }
     }
