@@ -42,6 +42,9 @@ CCEffect %{
         u_disEffect:
           value:
             - 0.737
+        u_speed:
+          value:
+            - 1.0
 }%
 
 
@@ -111,6 +114,7 @@ CCProgram fs %{
     vec4 u_burnColInner;
     vec4 u_burnColOuter;
     float u_edgetWidth;
+    float u_speed;
   };
 
   vec3 lerp(vec3 a, vec3 b, float t) {
@@ -135,12 +139,11 @@ CCProgram fs %{
       float dis = distance(u_startPoint, v_uv0);
       vec4 noiseColor = texture2D(noiseTex, v_uv0);
       float cutout = noiseColor.r * dis * (1.0 - u_disEffect) + dis * u_disEffect;
-      float speed = 1.0;
-      float threshold = abs(1.0 - sin(cc_time.x * speed));
+      float threshold = abs(sin(cc_time.x * u_speed));
       delta = cutout - threshold;
     #else
       // 阈值计算
-      float noiseThreshold = fract(cc_time.x / 5.0);
+      float noiseThreshold = fract(cc_time.x * u_speed);
       delta = nc.r - noiseThreshold;
     #endif
 
