@@ -20,7 +20,7 @@
         "__id__": 10
       },
       {
-        "__id__": 190
+        "__id__": 193
       },
       {
         "__id__": 28
@@ -175,15 +175,18 @@
       },
       {
         "__id__": 181
+      },
+      {
+        "__id__": 188
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 188
+        "__id__": 191
       },
       {
-        "__id__": 189
+        "__id__": 192
       }
     ],
     "_prefab": null,
@@ -7871,7 +7874,7 @@
     "node": {
       "__id__": 160
     },
-    "_enabled": true,
+    "_enabled": false,
     "_path": "texture/gifs/duck1",
     "_useAnimationClip": false,
     "_speed": 1,
@@ -8110,7 +8113,7 @@
     "node": {
       "__id__": 167
     },
-    "_enabled": true,
+    "_enabled": false,
     "_path": "https://n.sinaimg.cn/tech/transform/280/w128h152/20210528/d2fb-kquziih9543861.gif",
     "_useAnimationClip": false,
     "_speed": 1,
@@ -8349,7 +8352,7 @@
     "node": {
       "__id__": 174
     },
-    "_enabled": true,
+    "_enabled": false,
     "_path": "texture/gifs/duck1",
     "_useAnimationClip": true,
     "_speed": 1,
@@ -8587,7 +8590,7 @@
     "node": {
       "__id__": 181
     },
-    "_enabled": true,
+    "_enabled": false,
     "_path": "https://n.sinaimg.cn/tech/transform/280/w128h152/20210528/d2fb-kquziih9543861.gif",
     "_useAnimationClip": true,
     "_speed": 1,
@@ -8649,6 +8652,113 @@
     "_id": "58WTwlYlhL1KY3Ca6Xpi5v"
   },
   {
+    "__type__": "cc.Node",
+    "_name": "CartoonFire",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 2
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 189
+      },
+      {
+        "__id__": 190
+      }
+    ],
+    "_prefab": null,
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 200,
+      "height": 200
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        122.539,
+        -223.877,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "_groupIndex": 0,
+    "groupIndex": 0,
+    "_id": "0eq+ju7hpGRILO0rt4ptmB"
+  },
+  {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 188
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "21abbdde-fe9a-4ca3-b56a-af603a7182c3"
+      }
+    ],
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_spriteFrame": {
+      "__uuid__": "3f1928f2-c9cb-4e2a-ad36-cfb70cdfba1a"
+    },
+    "_type": 0,
+    "_sizeMode": 0,
+    "_fillType": 0,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_atlas": null,
+    "_id": "175M5Dg1dF4rrYcn5RJNtP"
+  },
+  {
+    "__type__": "08d86k8sC5JL5PyLiRuJZii",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 188
+    },
+    "_enabled": true,
+    "_id": "89UKS0iTNL0a6LqXnwerxn"
+  },
+  {
     "__type__": "cc.Canvas",
     "_name": "",
     "_objFlags": 0,
@@ -8703,10 +8813,10 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 191
+        "__id__": 194
       },
       {
-        "__id__": 192
+        "__id__": 195
       }
     ],
     "_prefab": null,
@@ -8762,7 +8872,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 190
+      "__id__": 193
     },
     "_enabled": true,
     "_materials": [
@@ -8795,7 +8905,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 190
+      "__id__": 193
     },
     "_enabled": true,
     "alignMode": 1,

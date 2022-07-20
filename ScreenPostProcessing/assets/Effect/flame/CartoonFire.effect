@@ -1,0 +1,128 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        alphaThreshold: { value: 0.5 }
+        innerColorBase: { value: [1.0, 0.984, 0.384, 1.000], inspector: { type: color } }
+        outerColorBase: { value: [0.25, 0.09, 0.0, 1.000], inspector: { type: color } }
+        speed: { value: [0.1, 0.1] }
+}%
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  #endif
+
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+    pos = cc_matViewProj * pos;
+    #endif
+
+    #if USE_TEXTURE
+    v_uv0 = a_uv0;
+    #endif
+
+    v_color = a_color;
+
+    gl_Position = pos;
+  }
+}%
+
+
+CCProgram fs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <alpha-test>
+  #include <texture>
+
+  in vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+  #endif
+
+  uniform u_constant {
+    vec4 innerColorBase;
+    vec4 outerColorBase;
+    vec2 speed;
+  };
+
+  // 随机数
+  float random (vec2 st) {
+    return fract(sin(dot(st, vec2(12.9898, 78.233))) * 43758.5453123);
+  }
+
+  // 生成噪声
+  float noise (vec2 st) {
+    vec2 i = floor(st);
+    vec2 f = fract(st);
+    float a = random(i);
+    float b = random(i + vec2(1.0, 0.0));
+    float c = random(i + vec2(0.0, 1.0));
+    float d = random(i + vec2(1.0, 1.0));
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+  }
+
+  void main () {
+    vec4 mask_color = vec4(1, 1, 1, 1);
+
+    float time = cc_time.x;
+    float offer = time * speed.x;
+    vec2 noiseSt = (0.2 * v_uv0 + offer * vec2(0.0, 0.5)) * 80.0;
+    vec2 noiseSt2 = (0.2 * v_uv0 + offer * vec2(0.0, 1.0)) * 80.0;
+    float noiseC = noise(noiseSt);
+    float noiseC2 = noise(noiseSt2);
+
+    #if USE_TEXTURE
+      CCTexture(texture, v_uv0, mask_color);
+    #endif
+
+    float dp = pow((noiseC + noiseC2), 5.54);
+
+    float uvy = v_uv0.y;
+    float c = ((mask_color.b * 3.0) + ((v_color.a * dp * 80.0 * mask_color.r) * (mask_color.g * uvy))) * uvy;
+    float finalAlpha = step(clamp(1.5 - uvy , 0.0, 1.0), c); 
+
+    float c2 = c * pow(mask_color.g * uvy, 4.93); 
+    float c3 = step(0.36, c2);
+    float c4 = 1.0 - c3;
+    vec3 emissive = (c3 * innerColorBase.rgb + c4 * outerColorBase.rgb) * 4.61;
+    vec4 finalColor = vec4(emissive, finalAlpha);
+
+    ALPHA_TEST(finalColor);
+
+    #if USE_BGRA
+      gl_FragColor = finalColor.bgra;
+    #else
+      gl_FragColor = finalColor.rgba;
+    #endif
+  }
+}%
