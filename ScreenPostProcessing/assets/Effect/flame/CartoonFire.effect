@@ -92,7 +92,7 @@ CCProgram fs %{
   }
 
   void main () {
-    vec4 mask_color = vec4(1, 1, 1, 1);
+    vec4 mask_color = vec4(1.0, 1.0, 1.0, 1.0);
 
     float time = cc_time.x;
     float offer = time * speed.x;
