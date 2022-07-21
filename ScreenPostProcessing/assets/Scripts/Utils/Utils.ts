@@ -80,6 +80,45 @@ export class Utils
 
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
+
+    private static _useFrameLog: boolean = false;
+    private static _oldLogFunc = cc.log;
+
+    public static set useFrameLog(v: boolean) 
+    {
+        if (this._useFrameLog === v) return;
+        this._useFrameLog = v;
+        if (v)
+        {
+            cc.log = (function (orgFunc)
+            {
+                let frames = -1;
+                let color = '#eeeeee';
+                let apartLine = '_'.repeat(100);
+                return function (...args)
+                {
+                    if (cc.director.getTotalFrames() !== frames)
+                    {
+                        frames = cc.director.getTotalFrames();
+                        if (cc.sys.isBrowser)
+                        {
+                            orgFunc(`%c${apartLine}`, `color:${color}; background:${color}`);
+                        }
+                        else
+                        {
+                            orgFunc(apartLine);
+                        }
+                    }
+                    return orgFunc(...args)
+                }
+            })(console.log);
+        }
+        else
+        {
+            cc.log = this._oldLogFunc;
+        }
+    }
+
 }
 
 declare global
@@ -119,3 +158,5 @@ String.prototype["formatByParam"] = function ()
         return str;
     }
 }
+
+window["Utils"] = Utils;
