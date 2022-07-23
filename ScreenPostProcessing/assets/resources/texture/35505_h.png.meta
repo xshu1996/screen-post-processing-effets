@@ -7,12 +7,12 @@
   "filterMode": "bilinear",
   "premultiplyAlpha": false,
   "genMipmaps": false,
-  "packable": true,
-  "width": 644,
-  "height": 566,
+  "packable": false,
+  "width": 106,
+  "height": 106,
   "platformSettings": {},
   "subMetas": {
-    "35505": {
+    "35505_h": {
       "ver": "1.0.6",
       "uuid": "8875680e-8e99-475d-a660-2dcc03fb066e",
       "importer": "sprite-frame",
