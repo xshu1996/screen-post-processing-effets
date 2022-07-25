@@ -1,0 +1,128 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        alphaThreshold: { value: 0.5 }
+        uv_offset: { value: [0.0, 0.0, 1.0, 1.0], editor: { visible: false } }
+        speed: { value: 1.0 }
+        intension: { value: 1.0 }
+}%
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  #endif
+
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+    pos = cc_matViewProj * pos;
+    #endif
+
+    #if USE_TEXTURE
+    v_uv0 = a_uv0;
+    #endif
+
+    v_color = a_color;
+
+    gl_Position = pos;
+  }
+}%
+
+
+CCProgram fs %{
+  precision highp float;
+
+  #include <alpha-test>
+  #include <texture>
+  #include <cc-global>
+
+  in vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+  #endif
+
+  uniform UVInfo {
+    vec4 uv_offset;
+    float is_rotated;
+  };
+
+  uniform Constant {
+    float speed;
+    float intension;
+  };
+
+  const float PI = 3.1415926535897932384626433832795;
+
+  vec2 normalizedUV(vec2 uv)
+  {
+    vec2 UVnormalize;
+    UVnormalize.x = (uv.x - uv_offset.x) / (uv_offset.z - uv_offset.x);
+    UVnormalize.y = (uv.y - uv_offset.y) / (uv_offset.w - uv_offset.y);
+    if (is_rotated > 0.5)
+    {
+      float temp = UVnormalize.x;
+      UVnormalize.x = UVnormalize.y;
+      UVnormalize.y = 1.0 - temp;
+    }
+    return UVnormalize;
+  }
+
+  void main () {
+    vec4 o = vec4(1, 1, 1, 1);
+
+    #if USE_TEXTURE
+      CCTexture(texture, v_uv0, o);
+    #endif
+
+    vec2 uv = normalizedUV(v_uv0);
+    vec2 center = vec2(0.5);
+
+    vec2 dir = normalize(center);
+    float angle = fract(cc_time.x * speed * 0.2) * 2.0 * PI;
+    vec4 rMt = vec4(cos(angle), -sin(angle), sin(angle), cos(angle));
+    dir = vec2(dir.x * rMt.x + dir.y * rMt.y, dir.x * rMt.z + dir.y * rMt.w);
+
+    vec2 c2uv = uv - center;
+    float light = abs(dot(c2uv, dir));
+    light = pow(light, 2.0);
+
+    o += o * light * intension;
+
+    o *= v_color;
+
+    ALPHA_TEST(o);
+
+    #if USE_BGRA
+      gl_FragColor = o.bgra;
+    #else
+      gl_FragColor = o.rgba;
+    #endif
+  }
+}%
