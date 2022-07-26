@@ -1,0 +1,25 @@
+{
+  "__type__": "cc.Material",
+  "_name": "OvalEclosion",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "e415387a-a682-413e-8015-bccfbbff6991"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {
+        "USE_TEXTURE": true
+      },
+      "props": {
+        "eclosionScale": 1,
+        "centerPos": {
+          "__type__": "cc.Vec2",
+          "x": 0,
+          "y": 1
+        }
+      }
+    }
+  }
+}
