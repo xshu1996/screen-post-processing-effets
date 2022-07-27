@@ -13,8 +13,8 @@ CCEffect %{
       properties:
         texture: { value: white }
         alphaThreshold: { value: 0.5 }
-        intensity: { value: 0.2 }
-        size: { value: [1.0, 1.0] }
+        uv_offset: { value: [0.0, 0.0, 1.0, 1.0], editor: { visible: false } }
+        intensity: { value: 1.0 }
         center: { value: [0.5, 0.5] }
 }%
 
@@ -67,28 +67,67 @@ CCProgram fs %{
   uniform sampler2D texture;
   #endif
 
+  #define _LOOP 10.0
+
   uniform Constant
   {
-    vec2 size;
+    vec4 uv_offset;
     vec2 center;
     float intensity;
+    float is_rotated;
   };
+
+  // 把图集内的图片的 uv 坐标换算映射到 0.0 ～ 1.0 或者反之
+  float linear(float x0, float x1, float y0, float y1, float inputX) 
+  {
+     return (y1 - y0) * (inputX - x0) / (x1 - x0) + y0;
+  }
+
+  // 映射uv到 0~1
+  vec2 normalizedUV(vec2 uv)
+  {
+    vec2 UVnormalize;
+    UVnormalize.x = (uv.x - uv_offset.x) / (uv_offset.z - uv_offset.x);
+    UVnormalize.y = (uv.y - uv_offset.y) / (uv_offset.w - uv_offset.y);
+    if (is_rotated > 0.5)
+    {
+      float temp = UVnormalize.x;
+      UVnormalize.x = UVnormalize.y;
+      UVnormalize.y = 1.0 - temp;
+    }
+    return UVnormalize;
+  }
+
+  // 将0~1的uv还原到合图uv
+  vec2 recoverUv(vec2 uv)
+  {
+    uv = clamp(uv, 0.0, 1.0);
+    uv = vec2(
+      uv.x * (uv_offset.z - uv_offset.x) + uv_offset.x,
+      uv.y * (uv_offset.w - uv_offset.y) + uv_offset.y
+    );
+    if (is_rotated > 0.5)
+    {
+        float tmp = 1.0 - uv.x;
+        uv.x = 1.0 - uv.y;
+        uv.y = 1.0 - tmp;
+    }
+    return uv;
+  }
 
   void main () {
     vec4 o = vec4(1, 1, 1, 1);
-    vec2 uv = v_uv0;
+    vec2 uv = normalizedUV(v_uv0);
 
     #if USE_TEXTURE
-      // CCTexture(texture, v_uv0, o);
-      vec2 normalizedSize = vec2(1.0 / size);
       vec4 sum = vec4(0.0);
-      uv += normalizedSize * 0.5 - center;
-      for (float i = 0.0; i < 30.0; ++i)
+      vec2 dir = (center - uv) * intensity * 0.01;
+      for (float i = 0.0; i < _LOOP; ++i)
       {
-        float offset = 1.0 - intensity * (i / (30.0 - 1.0));
-        sum += texture2D(texture, uv * offset + center);
+        // uv 需要映射到原先的
+        sum += texture2D(texture, recoverUv(uv + dir * i));
       }
-      o = vec4(sum / (30.0 - 1.0));
+      o = sum / _LOOP;
     #endif
 
     o *= v_color;

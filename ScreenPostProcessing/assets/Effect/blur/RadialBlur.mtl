@@ -9,17 +9,17 @@
   "_techniqueIndex": 0,
   "_techniqueData": {
     "0": {
-      "defines": {
-        "USE_TEXTURE": true
-      },
       "props": {
-        "size": {
-          "__type__": "cc.Vec2",
-          "x": 106,
-          "y": 98
-        },
-        "intensity": 0.5
-      }
+        "intensity": 2,
+        "uv_offset": {
+          "__type__": "cc.Vec4",
+          "x": 0,
+          "y": 0,
+          "z": 1,
+          "w": 1
+        }
+      },
+      "defines": {}
     }
   }
 }
