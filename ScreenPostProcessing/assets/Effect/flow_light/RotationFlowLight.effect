@@ -106,8 +106,10 @@ CCProgram fs %{
 
     vec2 dir = normalize(center);
     float angle = fract(cc_time.x * speed * 0.2) * 2.0 * PI;
-    vec4 rMt = vec4(cos(angle), -sin(angle), sin(angle), cos(angle));
-    dir = vec2(dir.x * rMt.x + dir.y * rMt.y, dir.x * rMt.z + dir.y * rMt.w);
+    // vec4 rMt = vec4(cos(angle), -sin(angle), sin(angle), cos(angle));
+    // dir = vec2(dir.x * rMt.x + dir.y * rMt.y, dir.x * rMt.z + dir.y * rMt.w);
+    mat2 rMt = mat2(cos(angle), sin(angle), -sin(angle), cos(angle));
+    dir = rMt * dir;
 
     vec2 c2uv = uv - center;
     float light = abs(dot(c2uv, dir));

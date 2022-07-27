@@ -21,7 +21,7 @@ export class ShaderUtils
      * 创建宽高为2的单色 texture
      * @returns 
      */
-    public static createSingleTexture(): cc.Texture2D 
+    public static genSingleTexture(): cc.Texture2D 
     {
         const data: Uint8Array = new Uint8Array(2 * 2 * 4);
         for (let i = 0; i < 2; ++i) 
