@@ -397,10 +397,10 @@ export class ScreenPostProcessing extends cc.Component
     {
         const bWidth: number = texture.width + offset * 2;
         const bHeight: number = texture.height + offset * 2;
-        const area: number = bHeight * bWidth * 4;
+        // const area: number = bHeight * bWidth * 4;
         const ret = new cc.RenderTexture();
         ret.initWithSize(bWidth, bHeight, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
-        ret.initWithData(new Uint8Array(area).fill(0), cc.Texture2D.PixelFormat.RGB888, bWidth, bHeight);
+        cc.renderer["device"].setFrameBuffer(ret["_framebuffer"]);
         ret.packable = false;
         // @ts-ignore
         ret.drawTextureAt(texture, offset, offset);
