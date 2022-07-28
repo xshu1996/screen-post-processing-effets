@@ -1,3 +1,4 @@
+const _tempRT: cc.RenderTexture = new cc.RenderTexture();
 export class Utils
 {
     private static _gid: number = 0;
@@ -119,6 +120,15 @@ export class Utils
         }
     }
 
+    /** 获取纹理像素数据 */
+    public static getTexturePixelData(texture: cc.Texture2D): Uint8Array
+    {
+        const rt = _tempRT;
+        rt.initWithSize(texture.width, texture.height);
+        cc.renderer["device"].setFrameBuffer(rt["_framebuffer"]);
+        rt["drawTextureAt"](texture, 0, 0);
+        return rt.readPixels();
+    }
 }
 
 declare global
