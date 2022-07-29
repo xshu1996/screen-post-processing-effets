@@ -83,15 +83,20 @@ CCProgram fs %{
     float intensity;
   };
 
-  float randomNoise2(vec2 seed)
+  vec4 lerp(vec4 a, vec4 b, float w)
   {
-    float speed = 10.0;
-    return fract(sin(dot(seed * floor(cc_time.x * speed), vec2(17.13, 3.71))) * 43758.5453123);
+    return a + w * (b - a);
   }
 
-  float randomNoise(float x, float y)
+  float randomNoise2(vec2 seed)
   {
-    return fract(sin(dot(vec2(x, y), vec2(12.9898, 78.233))) * 43758.5453);
+    float speed = 30.0;
+    return fract(sin(dot(seed * floor(cc_time.x * speed), vec2(127.1, 311.7))) * 43758.5453123);
+  }
+
+  float randomNoise(float x)
+  {
+    return randomNoise2(vec2(x, 1.0));
   }
 
   float trunc(float x, float num_levels)
@@ -125,7 +130,7 @@ CCProgram fs %{
   vec4 normalGlith(vec2 uv) {
     vec4 o = texture(texture, uv);
     float intensity = 8.0;
-    float splitAmount = intensity * randomNoise(time, 2.0);
+    float splitAmount = intensity * randomNoise2(vec2(time, 2.0));
     vec4 ColorR = texture(texture, vec2(uv.x + splitAmount, uv.y));
     vec4 ColorG = texture(texture, uv);
     vec4 ColorB = texture(texture, vec2(uv.x - splitAmount, uv.y));
@@ -149,22 +154,52 @@ CCProgram fs %{
 
   // 错位图块故障（Image Block Glitch）
   vec4 imageBlockGlitch(vec2 uv) {
-    vec4 o = texture(texture, uv);
-    float block = randomNoise2(floor(uv * 8.0));
-    float displaceNoise = pow(block, 8.0) * pow(block, 3.0);
-    float splitRGBNoise = pow(randomNoise2(vec2(7.2341, 1.0)), 17.0);
-    float offsetX = displaceNoise - splitRGBNoise * 1.0; 
-    float offsetY = displaceNoise - splitRGBNoise * 1.0;
+    // uniforms
+    float _Fade = 1.0;
+    float _Speed = 0.5;
+    float _Amount = 6.1;
+    float _BlockLayer1_U = 8.0;
+    float _BlockLayer1_V = 5.0;
+    float _BlockLayer2_U = 4.9;
+    float _BlockLayer2_V = 9.9;
+    float _BlockLayer1_Indensity = 8.0;
+    float _BlockLayer2_Indensity = 4.0;
+    float _RGBSplit_Indensity = 4.2;
 
-    float noiseX = 0.05 * randomNoise2(vec2(13.0, 1.0));
-    float noiseY = 0.05 * randomNoise2(vec2(7.0, 1.0));
-    vec2 offset = vec2(offsetX * noiseX, offsetY * noiseY);
+    // 求解第一层blockLayer
+		vec2 blockLayer1 = floor(uv * vec2(_BlockLayer1_U, _BlockLayer1_V));
+		vec2 blockLayer2 = floor(uv * vec2(_BlockLayer2_U, _BlockLayer2_V));
+		
+		float lineNoise1 = pow(randomNoise2(blockLayer1), _BlockLayer1_Indensity);
+		float lineNoise2 = pow(randomNoise2(blockLayer2), _BlockLayer2_Indensity);
+		float RGBSplitNoise = pow(randomNoise2(vec2(5.1379, 1.0)), 7.1) * _RGBSplit_Indensity;
+		float lineNoise = lineNoise1 * lineNoise2 * _Amount  - RGBSplitNoise;
+		
+		vec4 colorR = texture(texture, uv);
+		vec4 colorG = texture(texture, uv + vec2(lineNoise * 0.05 * randomNoise2(vec2(7.0, 1.0)), 0.0));
+		vec4 colorB = texture(texture, uv - vec2(lineNoise * 0.05 * randomNoise2(vec2(23.0, 1.0)), 0.0));
+		
+		vec4 result = vec4(vec3(colorR.r, colorG.g, colorB.b), colorR.a + colorG.a + colorB.a);
+		result = lerp(colorR, result, _Fade);
 
-    vec4 driftColor0 = texture(texture, uv + offset);
-    vec4 driftColor1 = texture(texture, uv - offset);
+    return result;
 
-    o = vec4(driftColor0.r, o.g, driftColor1.b, o.a + driftColor0.a + driftColor1.a);
-    return o;
+    // vec4 o = texture(texture, uv);
+    // float block = randomNoise2(floor(uv * 8.0));
+    // float displaceNoise = pow(block, 8.0) * pow(block, 3.0);
+    // float splitRGBNoise = pow(randomNoise2(vec2(7.2341, 1.0)), 17.0);
+    // float offsetX = displaceNoise - splitRGBNoise * 1.0; 
+    // float offsetY = displaceNoise - splitRGBNoise * 1.0;
+
+    // float noiseX = 0.05 * randomNoise2(vec2(13.0, 1.0));
+    // float noiseY = 0.05 * randomNoise2(vec2(7.0, 1.0));
+    // vec2 offset = vec2(offsetX * noiseX, offsetY * noiseY);
+
+    // vec4 driftColor0 = texture(texture, uv + offset);
+    // vec4 driftColor1 = texture(texture, uv - offset);
+
+    // o = vec4(driftColor0.r, o.g, driftColor1.b, o.a + driftColor0.a + driftColor1.a);
+    // return o;
   }
   // 错位线条故障 (line block glitch)
   vec4 lineBlockGlitchVertical(vec2 uv) {
@@ -287,6 +322,8 @@ CCProgram fs %{
       vec3 color = mix(source, stripColorAdjustColor, stripIntensity).rgb;
       o = vec4(color, source.a);
       o = source;
+    #elif USE_IMAGE_BLOCK_GLITCH
+      o = imageBlockGlitch(normalizedUV);
     #else
       o = lineBlockGlitchHorizontal(normalizedUV);
     #endif

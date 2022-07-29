@@ -11,7 +11,8 @@
     "0": {
       "defines": {
         "USE_TEXTURE": true,
-        "USE_STRIP_NOISE_TEXTURE": true
+        "USE_STRIP_NOISE_TEXTURE": false,
+        "USE_IMAGE_BLOCK_GLITCH": true
       }
     }
   }
