@@ -18,10 +18,10 @@ export class ShaderUtils
     }
 
     /**
-     * 创建宽高为2的单色 texture
+     * 创建宽高为2的单色 texture, 默认不参与合图
      * @returns 
      */
-    public static genSingleTexture(): cc.Texture2D 
+    public static genSingleTexture(packabled: boolean = false): cc.Texture2D 
     {
         const data: Uint8Array = new Uint8Array(2 * 2 * 4);
         for (let i = 0; i < 2; ++i) 
@@ -39,6 +39,7 @@ export class ShaderUtils
         texture.name = "single color";
         texture.initWithData(data, cc.Texture2D.PixelFormat.RGBA8888, 2, 2);
 
+        texture.packable = false;
         return texture;
     }
 

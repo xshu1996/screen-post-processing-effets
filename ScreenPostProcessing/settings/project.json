@@ -2,15 +2,32 @@
   "last-module-event-record-time": 1629116791807,
   "group-list": [
     "default",
-    "cullNode"
+    "cullNode",
+    "panel",
+    "metaball"
   ],
   "collision-matrix": [
     [
-      true
+      true,
+      null,
+      null,
+      false
     ],
     [
       false,
       false
+    ],
+    [
+      false,
+      false,
+      false,
+      true
+    ],
+    [
+      false,
+      false,
+      true,
+      true
     ]
   ],
   "excluded-modules": [
