@@ -39,7 +39,7 @@ export class ShaderUtils
         texture.name = "single color";
         texture.initWithData(data, cc.Texture2D.PixelFormat.RGBA8888, 2, 2);
 
-        texture.packable = false;
+        texture.packable = packabled;
         return texture;
     }
 
