@@ -6790,6 +6790,14 @@ declare namespace cc {
 		@param h h 
 		*/
 		readPixels(data?: Uint8Array, x?: number, y?: number, w?: number, h?: number): Uint8Array;	
+		updateSize(width: number, height: number): void;
+		/**
+		!#en 
+		Draw a texture to the specified position
+		!#zh 
+		将指定的图片渲染到指定的位置上
+		*/
+		drawTextureAt (texture: Texture2D, x: number, y: number): void;
 	}	
 	/** !#en Class for scene handling.
 	!#zh 场景资源类。 */

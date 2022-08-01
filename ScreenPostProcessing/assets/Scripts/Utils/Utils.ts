@@ -1,4 +1,3 @@
-const _tempRT: cc.RenderTexture = new cc.RenderTexture();
 export class Utils
 {
     private static _gid: number = 0;
@@ -120,13 +119,33 @@ export class Utils
         }
     }
 
-    /** 获取纹理像素数据 */
+    private static _tempRT: cc.RenderTexture = null;
+    /** 
+     * 获取纹理像素数据 
+     * cocos creator 2.4.6 web和模拟器可以正常获取像素信息
+     * 同一帧频繁使用会引起卡顿
+     */
     public static getTexturePixelData(texture: cc.Texture2D): Uint8Array
     {
-        const rt = _tempRT;
-        rt.initWithSize(texture.width, texture.height);
+        if (!cc.isValid(texture)) throw new Error("texture is invalid");
+
+        const w: number = texture.width;
+        const h: number = texture.height;
+        let rt: cc.RenderTexture = this._tempRT;
+
+        if (cc.isValid(rt))
+        {
+            rt.updateSize(w, h);
+        }
+        else
+        {
+            this._tempRT = rt = new cc.RenderTexture();
+            rt.initWithSize(w, h, cc.RenderTexture.DepthStencilFormat.RB_FMT_S8);
+        }
+
         cc.renderer["device"].setFrameBuffer(rt["_framebuffer"]);
-        rt["drawTextureAt"](texture, 0, 0);
+        rt.drawTextureAt(texture, 0, 0);
+
         return rt.readPixels();
     }
 }
