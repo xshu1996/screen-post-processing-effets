@@ -14,8 +14,10 @@ CCEffect %{
         texture: { value: white }
         alphaThreshold: { value: 0.5 }
         outlineColor: { value: [1.0, 1.0, 1.0, 1.0],  inspector: { type: color } }
+        innerColor: { value: [1.0, 1.0, 1.0, 1.0],  inspector: { type: color } }
         edge: { value: 0.2, editor: { range: [0.0] } }
         uv_offset: { value: [0.0, 0.0, 1.0, 1.0], editor: { visible: false } }
+        speed: { value: [0.0, 0.1] }
 }%
 
 
@@ -73,8 +75,16 @@ CCProgram fs %{
     float edge;
   };
 
+  #if USE_FIRE_OUTLINE
+  uniform FireParam
+  {
+    vec4 innerColor;
+  };
+  #endif
+
   uniform UVInfo {
     vec4 uv_offset;
+    vec2 speed;
     float is_rotated;
   };
 
@@ -106,18 +116,72 @@ CCProgram fs %{
     accum += texture2D(texture, uv + vec2(0, edge));
     accum += texture2D(texture, uv + vec2(edge, 0));
     accum += texture2D(texture, uv + vec2(-edge, 0));
-    accum.rgb = outlineColor.rgb * accum.a;
+    accum.rgb = outlineColor.rgb;// * accum.a;
 
     return mix(accum, normal, normal.a);
   }
 
+  // 用纯色对图片进行扩边填充
+  vec4 magnifyTexture(vec2 uv, float edge, vec4 fillColor)
+  {
+    edge = edge / 100.0;
+    vec4 accum = vec4(0.0);
+
+    accum += texture2D(texture, uv - edge);
+    accum += texture2D(texture, uv + edge);
+    accum += texture2D(texture, uv + vec2(-edge, edge));
+    accum += texture2D(texture, uv + vec2(edge, -edge));
+    accum += texture2D(texture, uv + vec2(0, -edge));
+    accum += texture2D(texture, uv + vec2(0, edge));
+    accum += texture2D(texture, uv + vec2(edge, 0));
+    accum += texture2D(texture, uv + vec2(-edge, 0));
+    accum.rgb = fillColor.rgb;// * accum.a;
+
+    return accum;
+  }
+
+  // 随机数
+  float random (vec2 st) {
+    return fract(sin(dot(st, vec2(12.9898, 78.233))) * 43758.5453123);
+  }
+
+  // 生成噪声
+  float noise (vec2 st) {
+    vec2 i = floor(st);
+    vec2 f = fract(st);
+    float a = random(i);
+    float b = random(i + vec2(1.0, 0.0));
+    float c = random(i + vec2(0.0, 1.0));
+    float d = random(i + vec2(1.0, 1.0));
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+  }
 
   void main () {
     vec4 o = vec4(1, 1, 1, 1);
     vec2 uv = v_uv0;
     #if USE_TEXTURE
       uv = normalizedUV(uv);
-      o = getEdgeColor(uv, edge, outlineColor);
+
+      #if USE_FIRE_OUTLINE
+        vec4 normalColor = texture(texture, uv);
+        float time = cc_time.x;
+        vec2 offer = time * speed; 
+        vec2 noiseSt = (0.5 * uv + offer * 0.5) * 100.0;
+        vec2 noiseSt2 = (0.8 * uv + offer) * 100.0;
+
+        float noiseColor = noise(noiseSt) - 0.5;
+        float noiseColor2 = noise(noiseSt2) - 0.5;
+
+        vec4 fire1 = magnifyTexture(uv + vec2(0.0, noiseColor * 0.03), edge * 2.0, outlineColor);
+        vec4 fire2 = magnifyTexture(uv + vec2(0.0, noiseColor2 * 0.015), edge, innerColor);
+
+        vec4 fireColor = mix(fire1, fire2, fire2.a);
+
+        o = mix(fireColor, normalColor, normalColor.a);
+      #else
+        o = getEdgeColor(uv, edge, outlineColor);
+      #endif
     #endif
 
     o *= v_color;

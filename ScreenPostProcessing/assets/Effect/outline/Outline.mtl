@@ -10,16 +10,29 @@
   "_techniqueData": {
     "0": {
       "defines": {
-        "USE_TEXTURE": true
+        "USE_TEXTURE": true,
+        "USE_FIRE_OUTLINE": false
       },
       "props": {
-        "edge": 0.2,
+        "edge": 1,
         "outlineColor": {
           "__type__": "cc.Color",
           "r": 255,
           "g": 0,
           "b": 0,
           "a": 255
+        },
+        "innerColor": {
+          "__type__": "cc.Color",
+          "r": 0,
+          "g": 36,
+          "b": 255,
+          "a": 255
+        },
+        "speed": {
+          "__type__": "cc.Vec2",
+          "x": 0,
+          "y": 0.1
         }
       }
     }
