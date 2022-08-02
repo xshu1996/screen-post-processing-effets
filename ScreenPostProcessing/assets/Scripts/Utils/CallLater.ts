@@ -165,7 +165,7 @@ class LaterHandler
     run(): void
     {
         let caller = this.caller;
-        if (caller && caller.destroyed) return this.clear();
+        if (!cc.isValid(caller)) return this.clear();
         let method = this.method;
         let args = this.args;
         if (method == null) return;
