@@ -66,27 +66,6 @@ export class ScreenPostProcessing extends cc.Component
         return this.effectType;
     }
 
-    // uv里面有8个值，分别是左下，右下，左上，右上4个点的x和y坐标，
-    public static getUVOffset(frame: cc.SpriteFrame)
-    {
-        if (!cc.isValid(frame)) return null;
-
-        const ret = {
-            isRotated: 0,
-            uvOffset: new cc.Vec4(0, 0, 0, 0),
-        };
-
-        const frame_uv = frame["uv"];
-        ret.uvOffset.x = frame_uv[0]; // xMin
-        ret.uvOffset.y = frame_uv[7]; // yMin
-        ret.uvOffset.z = frame_uv[6]; // xMax
-        ret.uvOffset.w = frame_uv[1]; // yMax
-
-        ret.isRotated = frame.isRotated() ? 1.0 : 0.0;
-
-        return ret;
-    }
-
     /** 无复用截图，每次重新生成 */
     public static getRenderTexture(renderParam: IRenderParam): cc.RenderTexture
     {

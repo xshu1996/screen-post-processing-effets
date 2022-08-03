@@ -3,6 +3,31 @@
  */
 export class ShaderUtils
 {
+    // uv里面有8个值，分别是左下，右下，左上，右上4个点的x和y坐标，
+    public static getUVOffset(frame: cc.SpriteFrame):
+        {
+            isRotated: number;
+            uvOffset: cc.Vec4;
+        }
+    {
+        if (!cc.isValid(frame)) return null;
+
+        const ret = {
+            isRotated: 0,
+            uvOffset: new cc.Vec4(0, 0, 0, 0),
+        };
+
+        const frame_uv = frame["uv"];
+        ret.uvOffset.x = frame_uv[0]; // xMin
+        ret.uvOffset.y = frame_uv[7]; // yMin
+        ret.uvOffset.z = frame_uv[6]; // xMax
+        ret.uvOffset.w = frame_uv[1]; // yMax
+
+        ret.isRotated = frame.isRotated() ? 1.0 : 0.0;
+
+        return ret;
+    }
+
     /**
      * 跳过资源加载 effect 文件，使用事先编译好的 cc.EffectAsset 文件的 json 格式文件来创建 cc.Material
      * @param effectJson 
@@ -80,7 +105,7 @@ export class ShaderUtils
                 }
 
                 let start: number = i * w * 4 + j * 4;
-                pixelData[start]     = randCol.r;
+                pixelData[start] = randCol.r;
                 pixelData[start + 1] = randCol.g;
                 pixelData[start + 2] = randCol.b;
                 pixelData[start + 3] = 255.0;

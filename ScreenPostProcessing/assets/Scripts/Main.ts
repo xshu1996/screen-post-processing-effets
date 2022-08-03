@@ -206,7 +206,7 @@ class Main extends cc.Component
         if (!cc.isValid(this.p_proText)) return;
         const WAVE_MTL: cc.Material = this.p_proText.getMaterial(0);
         WAVE_MTL.setProperty("offset", increment);
-        let spInfo = ScreenPostProcessing.getUVOffset(this.p_proText.spriteFrame);
+        let spInfo = ShaderUtils.getUVOffset(this.p_proText.spriteFrame);
         WAVE_MTL.setProperty("uUVOffset", spInfo.uvOffset);
         WAVE_MTL.setProperty("uRotated", spInfo.isRotated);
     }
