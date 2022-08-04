@@ -148,6 +148,42 @@ export class Utils
 
         return rt.readPixels();
     }
+
+    /** 获取 url 指定 key 的 value */
+    public static getQueryVariable(key: string): string
+    {
+        let query = window.location.search.substring(1),
+            vars = query.split('&');
+
+        for (let i = 0, l = vars.length; i < l; i++)
+        {
+            let pair = vars[i].split('=');
+
+            if (decodeURIComponent(pair[0]) === key)
+            {
+                return decodeURIComponent(pair[1]);
+            }
+        }
+
+        return "";
+    }
+
+    /** 获取 url 中参数对象 */
+    public static getQueryParamDict(): any
+    {
+        let query = window.location.search.substring(1);
+        let kvPairs = query.split('&');
+        let toRet = {};
+        for (let i = 0; i < kvPairs.length; ++i)
+        {
+            let kAndV = kvPairs[i].split('=');
+            if (undefined === kAndV || null === kAndV || 2 !== kAndV.length) return null;
+            let k = kAndV[0];
+            let v = decodeURIComponent(kAndV[1]);
+            toRet[k] = v;
+        }
+        return toRet;
+    }
 }
 
 declare global
