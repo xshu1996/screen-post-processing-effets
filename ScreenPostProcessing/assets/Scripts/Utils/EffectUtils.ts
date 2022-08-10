@@ -5,11 +5,9 @@ export interface IShake
     target: cc.Node,
     /** 持续时间，单位 ms */
     duration: number,
-    /** 摇晃区间 */
-    shakeRange?: number,
     /** 速度 */
     speed?: number,
-    /** 震级 */
+    /** 震动区间 */
     magnitude?: number,
     /** 是否循环, 小于 0 无限循环 */
     loopTime?: number;
@@ -41,8 +39,7 @@ export class EffectUtils
     {
         const {
             target, duration,
-            shakeRange = 50,
-            speed = 20,
+            speed = 1,
             magnitude = 5,
             loopTime = 1,
             delayInterval = 0
@@ -57,18 +54,18 @@ export class EffectUtils
         const originalPos: cc.Vec2 = target.getPosition();
         const deltaTime: number = cc.director.getAnimationInterval();
 
-        const random1 = Utils.randomSection(-shakeRange, shakeRange);
-        const random2 = Utils.randomSection(-shakeRange, shakeRange);
+        const random1 = Utils.randomSection(-180, 180) / Math.PI;
+        const random2 = Utils.randomSection(-180, 180) / Math.PI;
 
         const shake: cc.Tween = cc.tween();
         let elapsed = 0;
         for (; elapsed < duration; elapsed += deltaTime)
         {
             const percent: number = elapsed / duration;
-            const ps: number = percent * speed;
+            const ps: number = percent * speed * 200;
 
-            const range1 = Math.sin(random1 * ps),
-                range2 = Math.cos(random2 * ps);
+            const range1 = Math.sin(random1 + ps),
+                range2 = Math.cos(random2 + ps);
 
             let moveDelta: cc.Vec2;
             if (percent < 0.5)
@@ -135,8 +132,8 @@ export class EffectUtils
             .repeat(repeatTime,
                 cc.tween()
                     .to(pressTime, {
-                        scaleX: originalScale.x + pressScale,
-                        scaleY: originalScale.y - pressScale
+                        scaleX: originalScale.x * (1 + pressScale),
+                        scaleY: originalScale.y * (1 - pressScale)
                     }, { easing: "sineOut" })
                     .to(scaleBackTime, { scaleX: originalScale.x, scaleY: originalScale.y })
                     .to(bouncingTime, {
