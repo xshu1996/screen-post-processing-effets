@@ -118,7 +118,7 @@ export class EffectUtils
     }
 
     /** 果冻动作 时间单位 MS */
-    public static jelly(jellyParams: IJelly): cc.Tween
+    public static jellyTo(jellyParams: IJelly): cc.Tween
     {
         const { target, duration,
             frequency = 3,
@@ -196,7 +196,7 @@ export class EffectUtils
     }
 
     /** yoYo 往复动作 */
-    public static yoYoTweenTo(params: IYoYo): cc.Tween
+    public static yoYoTo(params: IYoYo): cc.Tween
     {
         const { target, duration, props,
             delay = 0,
