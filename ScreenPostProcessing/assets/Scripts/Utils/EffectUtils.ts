@@ -12,7 +12,7 @@ export interface IShake
     /** 是否循环, 小于 0 无限循环 */
     loopTime?: number;
     /** 延迟播放 ms */
-    delayInterval?: number,
+    delay?: number,
 }
 
 export interface IJelly
@@ -27,9 +27,23 @@ export interface IJelly
     /** 挤压 */
     pressScale?: number,
     /** 延迟播放 ms */
-    delayInterval?: number,
+    delay?: number,
     /** 是否循环, 小于 0 无限循环 */
     loopTime?: number,
+}
+
+export interface IYoYo
+{
+    target: cc.Node,
+    duration: number,
+    props: { [key: string]: number; };
+    /** 延迟播放 ms */
+    delay?: number,
+    /** 循环次数， 默认 1 次 */
+    loopTime?: number,
+    easing?: cc.Easing,
+    /** 重复动作的间隔 ms */
+    interval?: number,
 }
 
 export class EffectUtils
@@ -42,7 +56,7 @@ export class EffectUtils
             speed = 1,
             magnitude = 5,
             loopTime = 1,
-            delayInterval = 0
+            delay = 0
         } = shakeParams;
 
         if (!cc.isValid(target)) 
@@ -86,16 +100,17 @@ export class EffectUtils
         // emit completed event
         shake.then(cc.tween().call(function ()
         {
-            if (cc.isValid(target))
-            {
-                target.emit("shake_action_completed", shake);
-            }
+            if (cc.isValid(target)) target.emit("shake_action_completed");
         }));
 
         const repeatTime: number = loopTime > 0 ? loopTime : 10e8;
         const ret = cc.tween(target)
+            .delay(delay / 1000)
             .repeat(repeatTime, shake)
-            .delay(delayInterval / 1000)
+            .call(function () 
+            {
+                if (cc.isValid(target)) target.emit("shake_action_ended");
+            })
             .start()
             ;
 
@@ -109,7 +124,7 @@ export class EffectUtils
             frequency = 3,
             decayFactor = 1.5,
             pressScale = 0.25,
-            delayInterval = 0,
+            delay = 0,
             loopTime = 1
         } = jellyParams;
 
@@ -129,6 +144,7 @@ export class EffectUtils
         const amplitude: number = pressScale / scaleBackTime;
 
         const ret = cc.tween(target)
+            .delay(delay / 1000)
             .repeat(repeatTime,
                 cc.tween()
                     .to(pressTime, {
@@ -154,13 +170,13 @@ export class EffectUtils
                     })
                     .call(function ()
                     {
-                        if (cc.isValid(target))
-                        {
-                            target.emit("jelly_action_completed", ret);
-                        }
+                        if (cc.isValid(target)) target.emit("jelly_action_completed");
                     })
             )
-            .delay(delayInterval / 1000)
+            .call(function ()
+            {
+                if (cc.isValid(target)) target.emit("jelly_action_ended");
+            })
             .start()
             ;
 
@@ -177,5 +193,64 @@ export class EffectUtils
         // 角速度（ω=2nπ）
         const angularVelocity = frequency * Math.PI * 2;
         return amplitude * (Math.sin(time * angularVelocity) / Math.exp(decay * time) / angularVelocity);
+    }
+
+    /** yoYo 往复动作 */
+    public static yoYoTweenTo(params: IYoYo): cc.Tween
+    {
+        const { target, duration, props,
+            delay = 0,
+            loopTime = 1,
+            easing = null,
+            interval = 0
+        } = params;
+
+        if (!cc.isValid(target)) 
+        {
+            cc.error(new Error("target is invalid"));
+            return null;
+        }
+
+        const repeatTime: number = loopTime > 0 ? loopTime : 10e8;
+        const yoYoProps = [];
+        for (const p in props)
+        {
+            if ((typeof (target[p]) == 'number'))
+            {
+                const start = target[p];
+                const end = props[p];
+                yoYoProps.push([p, start, end]);
+            }
+        }
+        const forwardP = {};
+        const backwardP = {};
+        for (const p of yoYoProps)
+        {
+            forwardP[p[0]] = p[2];
+            backwardP[p[0]] = p[1];
+        }
+        const opt: any = {};
+        if (easing) opt.easing = easing;
+
+        const ret = cc.tween(target)
+            .delay(delay / 1000)
+            .repeat(
+                repeatTime,
+                cc.tween()
+                    .to(duration / 1000, forwardP, opt)
+                    .to(duration / 1000, backwardP, opt)
+                    .call(function ()
+                    {
+                        if (target) target.emit("yoYo_action_completed");
+                    })
+                    .delay(interval / 1000)
+            )
+            .call(function ()
+            {
+                if (target) target.emit("yoYo_action_ended");
+            })
+            .start()
+            ;
+        return ret;
     }
 }
