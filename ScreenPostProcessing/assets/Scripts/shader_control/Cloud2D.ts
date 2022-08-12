@@ -1,10 +1,11 @@
 import { ShaderUtils } from "../Utils/ShaderUtils";
 
-const { ccclass, property, menu, executeInEditMode } = cc._decorator;
+const { ccclass, property, menu, executeInEditMode, requireComponent } = cc._decorator;
 
 @ccclass
 @menu("shader/clouds")
 @executeInEditMode
+@requireComponent(cc.Sprite)
 export default class Cloud2D extends cc.Component
 {
 
