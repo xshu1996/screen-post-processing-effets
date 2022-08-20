@@ -79,15 +79,18 @@
       },
       {
         "__id__": 64
+      },
+      {
+        "__id__": 65
       }
     ],
     "_active": true,
     "_components": [
       {
-        "__id__": 65
+        "__id__": 68
       },
       {
-        "__id__": 66
+        "__id__": 69
       }
     ],
     "_prefab": null,
@@ -595,7 +598,7 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        186.13445378151255,
+        344.8453608247421,
         0,
         0,
         0,
@@ -813,8 +816,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "宽度:range:[0/714], 800.00 ",
-    "_N$string": "宽度:range:[0/714], 800.00 ",
+    "_string": "宽度:range:[0/485], 800.00 ",
+    "_N$string": "宽度:range:[0/485], 800.00 ",
     "_fontSize": 40,
     "_lineHeight": 40,
     "_enableWrapText": true,
@@ -844,7 +847,7 @@
     "_N$handle": {
       "__id__": 12
     },
-    "_N$progress": 1.1204481792717087,
+    "_N$progress": 1.6494845360824741,
     "_id": "b3Rl4/SQFAYZwdIBsxqUA5"
   },
   {
@@ -1053,7 +1056,7 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        3.846153846153811,
+        28.80794701986747,
         0,
         0,
         0,
@@ -1219,7 +1222,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 515.9,
+      "width": 482.54,
       "height": 50.4
     },
     "_anchorPoint": {
@@ -1271,8 +1274,8 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_string": "高度:range:[0/877.5], 450.00 ",
-    "_N$string": "高度:range:[0/877.5], 450.00 ",
+    "_string": "高度:range:[0/755], 450.00 ",
+    "_N$string": "高度:range:[0/755], 450.00 ",
     "_fontSize": 40,
     "_lineHeight": 40,
     "_enableWrapText": true,
@@ -1302,7 +1305,7 @@
     "_N$handle": {
       "__id__": 21
     },
-    "_N$progress": 0.5128205128205128,
+    "_N$progress": 0.5960264900662252,
     "_id": "76vp8icplFpLFmrIBS4sI/"
   },
   {
@@ -3139,6 +3142,113 @@
     "_groupIndex": 0,
     "groupIndex": 0,
     "_id": "2cGzbOYodOUr1zVEF3zVtQ"
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "single_color",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 2
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 66
+      },
+      {
+        "__id__": 67
+      }
+    ],
+    "_prefab": null,
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 400,
+      "height": 500
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        -651.288,
+        -75.064,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "_groupIndex": 0,
+    "groupIndex": 0,
+    "_id": "1bdEqmZYZB1qoDpc4bS9tE"
+  },
+  {
+    "__type__": "cc.Sprite",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 65
+    },
+    "_enabled": true,
+    "_materials": [
+      {
+        "__uuid__": "31f91f38-efad-4fc8-a82d-5441897a3d2f"
+      }
+    ],
+    "_srcBlendFactor": 770,
+    "_dstBlendFactor": 771,
+    "_spriteFrame": {
+      "__uuid__": "d9775fb4-3768-4281-8265-fe58516a14fe"
+    },
+    "_type": 0,
+    "_sizeMode": 0,
+    "_fillType": 0,
+    "_fillCenter": {
+      "__type__": "cc.Vec2",
+      "x": 0,
+      "y": 0
+    },
+    "_fillStart": 0,
+    "_fillRange": 0,
+    "_isTrimmedMode": true,
+    "_atlas": null,
+    "_id": "bbskmXX1pLdIsNe4CBxdxf"
+  },
+  {
+    "__type__": "08d86k8sC5JL5PyLiRuJZii",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 65
+    },
+    "_enabled": true,
+    "_id": "76ZuSiraROv6m75f2R+nwI"
   },
   {
     "__type__": "cc.Canvas",

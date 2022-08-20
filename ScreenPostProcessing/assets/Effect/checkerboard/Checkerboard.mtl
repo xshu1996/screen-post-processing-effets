@@ -1,0 +1,24 @@
+{
+  "__type__": "cc.Material",
+  "_name": "checkerboard",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "35c02fe4-553a-4b16-9469-7de63db236c3"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {
+        "USE_TEXTURE": false
+      },
+      "props": {
+        "_Resolution": {
+          "__type__": "cc.Vec2",
+          "x": 400,
+          "y": 500
+        }
+      }
+    }
+  }
+}
