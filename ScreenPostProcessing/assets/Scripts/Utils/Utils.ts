@@ -109,8 +109,8 @@ export class Utils
                             orgFunc(apartLine);
                         }
                     }
-                    return orgFunc(...args)
-                }
+                    return orgFunc(...args);
+                };
             })(console.log);
         }
         else
@@ -184,6 +184,51 @@ export class Utils
         }
         return toRet;
     }
+
+    /**
+     * 格式化数字 ["K", "M", "G", "T", "P", "E"]
+     * @param places 保留小数点后几位
+     */
+    public static formateNumber(num: number, places: number): string
+    {
+        const format = [
+            {
+                value: 1,
+                symbol: ""
+            },
+            {
+                value: 1e3,
+                symbol: "K"
+            },
+            {
+                value: 1e6,
+                symbol: "M"
+            },
+            {
+                value: 1e9,
+                symbol: "G"
+            }, {
+                value: 1e12,
+                symbol: "T"
+            }, {
+                value: 1e15,
+                symbol: "P"
+            }, {
+                value: 1e18,
+                symbol: "E"
+            }
+        ];
+        let i: number = format.length - 1;
+        while (i > 0 && !(num >= format[i].value))
+        {
+            --i;
+        }
+        return (num / format[i].value)
+            .toFixed(places)
+            .replace(/\.0+$|(\.[0-9]*[1-9])0+$/, "$1")
+            + format[i].symbol
+            ;
+    }
 }
 
 declare global
@@ -222,6 +267,6 @@ String.prototype["formatByParam"] = function ()
         }
         return str;
     }
-}
+};
 
 window["Utils"] = Utils;
