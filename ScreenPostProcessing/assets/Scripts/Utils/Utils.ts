@@ -81,6 +81,19 @@ export class Utils
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
+    /** 随机打乱数组顺序, 洗牌算法 */
+    public static randomArray(arr: any[]): any[]
+    {
+        let n: number = arr.length,
+            random: number;
+        while (0 !== n)
+        {
+            random = Math.random() * (n--) | 0;
+            [arr[random], arr[n]] = [arr[n], arr[random]];
+        }
+        return arr;
+    }
+
     private static _useFrameLog: boolean = false;
     private static _oldLogFunc = cc.log;
 
