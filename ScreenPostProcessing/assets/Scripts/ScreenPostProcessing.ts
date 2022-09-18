@@ -259,7 +259,7 @@ export class ScreenPostProcessing extends cc.Component
         return renderNode;
     }
 
-    public static saveImgByRT(rt: cc.RenderTexture, fileName: string = "image.png")
+    public static saveImgByRT(rt: cc.RenderTexture, quality: number = 1, fileName: string = "image.png")
     {
         const rawWidth: number = rt.width;
         const rawHeight: number = rt.height;
@@ -328,7 +328,7 @@ export class ScreenPostProcessing extends cc.Component
             }
         }
 
-        let base64 = this._canvas.toDataURL("image/png"); // 压缩语句
+        let base64 = this._canvas.toDataURL("image/png", quality); // 压缩语句
         const tmp = document.createElement("a");
         tmp.style.display = 'none';
         tmp.href = base64;
