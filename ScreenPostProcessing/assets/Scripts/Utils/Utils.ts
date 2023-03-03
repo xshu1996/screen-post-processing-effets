@@ -282,4 +282,23 @@ String.prototype["formatByParam"] = function ()
     }
 };
 
+export const measure = function (
+    target: Object,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+): PropertyDescriptor
+{
+    const oldFunc: Function = descriptor.value;
+    descriptor.value = function (...args: any[])
+    {
+        const start: number = performance.now();
+        const result: any = oldFunc.apply(this, args);
+        const finish: number = performance.now();
+        console.log(`${propertyKey} Execution time: ${finish - start} milliseconds`);
+        return result;
+    };
+
+    return descriptor;
+};
+
 window["Utils"] = Utils;

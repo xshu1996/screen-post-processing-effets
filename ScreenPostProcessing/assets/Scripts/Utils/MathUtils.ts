@@ -8,7 +8,7 @@ export class MathUtils
     {
         if (points.length <= 3) return [0, 1, 2];
         // point与idx的映射
-        let pointMap: { [key: string]: number } = {};
+        let pointMap: { [key: string]: number; } = {};
         for (let i = 0; i < points.length; ++i)
         {
             let p = points[i];
@@ -17,7 +17,7 @@ export class MathUtils
         const getIdx = (p: cc.Vec2) =>
         {
             return pointMap[`${p.x}-${p.y}`];
-        }
+        };
         points = points.concat([]);
         let idxs: number[] = [];
 
@@ -149,7 +149,7 @@ export class MathUtils
             }
 
             return false;
-        }
+        };
 
         // 获取光栏上下两条边向量
         const getLightBarEdge = function (p1: Vec2, p2: Vec2, caliber: number)
@@ -161,18 +161,18 @@ export class MathUtils
                     Math.cos(angle) * p.x - Math.sin(angle) * p.y,
                     Math.sin(angle) * p.x + Math.cos(angle) * p.y
                 );
-            }
+            };
             let len = Vec2.distance(p1, p2);
             let angle = Math.atan2(caliber * 0.5, len);
             let up = rotateVec2(p2.sub(p1), angle);
             let down = rotateVec2(p2.sub(p1), -angle);
             return { up, down };
-        }
+        };
 
         const acosVector = function (v1: Vec2, v2: Vec2)
         {
             return Math.acos(v1.dot(v2) / (v1.mag() * v2.mag()));
-        }
+        };
 
         for (let p of points)
         {
@@ -291,10 +291,31 @@ export class MathUtils
                 division(x1, y1, mid_x, mid_y, displace / 2);
                 division(mid_x, mid_y, x2, y2, displace / 2);
             }
-        }
+        };
 
         division(startPos.x, startPos.y, endPos.x, endPos.y, displacement);
 
         return ret;
+    }
+
+    public static barycentric(vertices: cc.Vec2[], p: cc.Vec2): cc.Vec3
+    {
+        const x = cc.v3(
+            vertices[2].x - vertices[0].x,
+            vertices[1].x - vertices[0].x,
+            vertices[0].x - p.x
+        );
+
+        const y = cc.v3(
+            vertices[2].y - vertices[0].y,
+            vertices[1].y - vertices[0].y,
+            vertices[0].y - p.y
+        );
+
+        const u = x.cross(y);
+
+        if (Math.abs(u.z) < 1) return cc.v3(-1, 1, 1);
+
+        return cc.v3(1 - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
     }
 }
