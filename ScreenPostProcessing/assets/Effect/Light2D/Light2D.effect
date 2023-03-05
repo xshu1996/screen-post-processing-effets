@@ -1,0 +1,159 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        alphaThreshold: { value: 0.5 }
+        heightScale: { value: 0.01 }
+        ambientLight: { value: [0.1, 0.1, 0.1, 1.0], inspector: { type: color } }
+        worldSpaceLightPos: { value: [0.0, 0.0, 1.0, 1.0] }
+        lightColor0: { value: [1.0, 1.0, 1.0, 1.0], inspector: { type: color } }
+        shininess: { value: 32.0 }
+}%
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+  out vec3 v_pos;
+
+  #if USE_TEXTURE
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  #endif
+
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    v_pos = (cc_matWorld * pos).xyz;
+    #else
+    pos = cc_matViewProj * pos;
+    v_pos = pos.xyz;
+    #endif
+
+    #if USE_TEXTURE
+    v_uv0 = a_uv0;
+    #endif
+
+    v_color = a_color;
+
+    gl_Position = pos;
+  }
+}%
+
+
+CCProgram fs %{
+  precision highp float;
+
+  #include <alpha-test>
+  #include <texture>
+  #include <cc-global>
+
+  in vec4 v_color;
+  in vec3 v_pos;
+
+  #if USE_TEXTURE
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+  #endif
+
+  uniform u_Constant
+  {
+    vec4 worldSpaceLightPos;
+    vec4 lightColor0;
+    vec4 ambientLight;
+    float shininess;
+    float heightScale;
+  };
+
+  float GetGrayColor(vec3 color)
+  {
+    return color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722;
+  }
+
+  vec3 GetNormalByGray(vec2 uv)
+  {
+    float delta = 0.01;
+    vec2 deltaU = vec2(delta, 0);
+    float h1_u = GetGrayColor(texture2D(texture, uv - deltaU).rgb);
+    float h2_u = GetGrayColor(texture2D(texture, uv + deltaU).rgb);
+    // vec3 tangent_u = vec3(1, 0, (h2_u - h1_u) / deltaU.x);
+    vec3 tangent_u = vec3(deltaU.x, 0, heightScale * (h2_u - h1_u)); 
+
+    vec2 deltaV = vec2(0, delta);
+    float h1_v = GetGrayColor(texture2D(texture, uv - deltaV).rgb);
+    float h2_v = GetGrayColor(texture2D(texture, uv + deltaV).rgb);
+    // vec3 tangent_u = vec3(1, 0, (h2_v - h1_v) / deltaV.y);
+    vec3 tangent_v = vec3(0, deltaV.y, heightScale * (h2_v - h1_v));
+
+    vec3 normal = normalize(cross(tangent_v, tangent_u));
+
+    return normal;
+  }
+
+  void main () {
+    vec4 o = vec4(1, 1, 1, 1);
+
+    #if USE_TEXTURE
+      CCTexture(texture, v_uv0, o);
+    #endif
+
+    float grayCol = GetGrayColor(o.rgb);
+    vec3 normal = GetNormalByGray(v_uv0);
+    // 归一化法线
+    normal.z *= -1.0;
+    normal = (normal * 0.5 + 0.5);
+    // 法线贴图
+    // o.rgb = normal;
+
+    // normal = vec3(0, 0, 1);
+    vec3 ambient = ambientLight.rgb;
+    vec3 viewPos = cc_cameraPos.xyz;
+    vec3 viewDir = normalize(viewPos - v_pos);
+    vec3 lightDir = normalize(worldSpaceLightPos.xyz - v_pos);
+
+    // 漫反射
+    float diff = max(dot(normal, normalize(lightDir)), 0.0);
+    vec3 diffuse = diff * lightColor0.rgb;
+
+    // 高光反射
+    // phong-specular
+    vec3 reflectDir = normalize(reflect(-lightDir, normal)); 
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+
+    // blint-phong
+    // vec3 halfwayDir = normalize(lightDir + viewDir);
+    // float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+
+    vec3 specular = spec * lightColor0.rgb;
+
+    o.rgb = (ambient + diffuse + specular) * o.rgb;
+
+    o *= v_color;
+
+    ALPHA_TEST(o);
+
+    #if USE_BGRA
+      gl_FragColor = o.bgra;
+    #else
+      gl_FragColor = o.rgba;
+    #endif
+  }
+}%
