@@ -17,6 +17,7 @@ CCEffect %{
         ambientLight: { value: [0.1, 0.1, 0.1, 1.0], inspector: { type: color } }
         worldSpaceLightPos: { value: [0.0, 0.0, 1.0, 1.0] }
         lightColor0: { value: [1.0, 1.0, 1.0, 1.0], inspector: { type: color } }
+        _MainTex_TexelSize: { value: [500.0, 500.0] }
         shininess: { value: 32.0 }
 }%
 
@@ -79,6 +80,7 @@ CCProgram fs %{
     vec4 worldSpaceLightPos;
     vec4 lightColor0;
     vec4 ambientLight;
+    vec2 _MainTex_TexelSize;
     float shininess;
     float heightScale;
   };
@@ -90,14 +92,13 @@ CCProgram fs %{
 
   vec3 GetNormalByGray(vec2 uv)
   {
-    float delta = 0.01;
-    vec2 deltaU = vec2(delta, 0);
+    vec2 deltaU = vec2(1.0 / _MainTex_TexelSize.x, 0);
     float h1_u = GetGrayColor(texture2D(texture, uv - deltaU).rgb);
     float h2_u = GetGrayColor(texture2D(texture, uv + deltaU).rgb);
     // vec3 tangent_u = vec3(1, 0, (h2_u - h1_u) / deltaU.x);
     vec3 tangent_u = vec3(deltaU.x, 0, heightScale * (h2_u - h1_u)); 
 
-    vec2 deltaV = vec2(0, delta);
+    vec2 deltaV = vec2(0, 1.0 / _MainTex_TexelSize.y);
     float h1_v = GetGrayColor(texture2D(texture, uv - deltaV).rgb);
     float h2_v = GetGrayColor(texture2D(texture, uv + deltaV).rgb);
     // vec3 tangent_u = vec3(1, 0, (h2_v - h1_v) / deltaV.y);

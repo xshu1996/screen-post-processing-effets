@@ -22,13 +22,20 @@
         },
         "worldSpaceLightPos": {
           "__type__": "cc.Vec4",
-          "x": 0.5,
+          "x": -0.5,
           "y": 0.5,
           "z": 0.1,
           "w": 1
         },
-        "shininess": 32,
-        "heightScale": 0.01
+        "shininess": 64,
+        "heightScale": 0.001,
+        "ambientLight": {
+          "__type__": "cc.Color",
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 255
+        }
       }
     }
   }
