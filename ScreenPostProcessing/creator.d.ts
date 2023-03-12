@@ -15156,6 +15156,7 @@ declare namespace cc {
 		/** !#en The total draw call count in last rendered frame.
 		!#zh 上一次渲染帧所提交的渲染批次总数。 */
 		static drawCalls: number;	
+        static _handle: any;
 	}	
 	/** !#en The burst of 3d particle.
 	!#zh 3D 粒子发射时的爆发个数 */
@@ -19762,6 +19763,30 @@ declare namespace cc {
 	}
 	
 }
+
+declare namespace cc {
+	export class Assembler {
+		public _renderComp: cc.RenderComponent;
+		public init(comp: cc.RenderComponent);
+		public getVfmt();
+		static public register(renderCompCtor, assembler);
+	}
+	export class RenderData {
+        clear();
+		init(assembler: cc.Assembler);
+		createQuadData(index, verticesFloats, indicesCount);
+		createFlexData(index, verticesFloats, indicesCount, vfmt): cc.FlexBuffer;
+		initQuadIndices(idata);
+
+		vDatas: Float32Array[];
+		iDatas: Float32Array[];
+		uintVDatas;
+		meshCount: number;
+		_infos;
+		_flexBuffer;
+	}
+}
+
 
 /** !#en
 The global main namespace of DragonBones, all classes, functions,
