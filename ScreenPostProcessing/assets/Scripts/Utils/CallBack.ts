@@ -1,18 +1,18 @@
 export class CallBack 
 {
     private _caller: any;
-    get caller()
+    public get caller()
     {
         return this._caller;
     }
     private _handler: Function | null;
-    get handler()
+    public get handler()
     {
         return this._handler;
     }
     private _args: any[];
 
-    constructor(thisArg, func, ...args)
+    constructor(thisArg: any, func: Function, ...args: any[])
     {
         this._caller = thisArg;
         this._handler = func;
@@ -31,14 +31,16 @@ export class CallBack
 
     public getCallBackArgs(callArgs: any[]): any[]
     {
-        let arr;
-        if (this._args != null)
+        let arr: any[] = [];
+        if (this._args && this._args.length)
         {
-            arr = this._args;
+            for (let index = 0; index < this._args.length; index++)
+            {
+                arr.push(this._args[index]);
+            }
         }
         if (callArgs && callArgs.length)
         {
-            arr = arr || [];
             for (let index = 0; index < callArgs.length; index++)
             {
                 arr.push(callArgs[index]);
