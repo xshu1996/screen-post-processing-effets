@@ -4,6 +4,7 @@
  * @description ...
  */
 
+import { HackCode } from "./hack-code";
 import { ScreenPostProcessing, EffectType } from "./ScreenPostProcessing";
 import { MathUtils } from "./Utils/MathUtils";
 import { ShaderUtils } from "./Utils/ShaderUtils";
