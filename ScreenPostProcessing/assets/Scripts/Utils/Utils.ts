@@ -242,6 +242,58 @@ export class Utils
             + format[i].symbol
             ;
     }
+
+    /**
+     * 二分查找
+     * @param target 目标值
+     * @param arr 数组
+     * @returns 
+     */
+    public static binarySearch(target: number, arr: number[]): number
+    {
+        let low: number = 0, high: number = arr.length - 1;
+        while (low < high)
+        {
+            const mid = Math.floor((high - low) / 2) + low;
+            if (arr[mid] < target)
+            {
+                low = mid + 1;
+            }
+            else
+            {
+                high = mid;
+            }
+        }
+        return low;
+    }
+
+    /**
+     * 权重随机算法
+     * @param weightArr 权重数组
+     * @returns 
+     */
+    public static weightRandom(weightArr: number[]): number
+    {
+        if (weightArr.length == 0)
+        {
+            throw "权重数组长度不可以为0";
+        }
+
+        // 前缀和
+        const pre: number[] = new Array(weightArr.length).fill(0);
+        pre[0] = weightArr[0];
+        for (let i = 1, l = weightArr.length; i < l; ++i)
+        {
+            pre[i] = pre[i - 1] + weightArr[i];
+        }
+
+        // 权重总和
+        const total: number = pre[pre.length - 1];
+        // 随机目标
+        const rad: number = Math.floor(Math.random() * total) + 1;
+
+        return this.binarySearch(rad, pre);
+    }
 }
 
 declare global
